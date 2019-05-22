@@ -13,7 +13,15 @@ bindings.implementBinding = function (binding) {
     //let type = rules.findType(lines);
     let codeLines = fn.extractCodeLines(lines);
     let code = fn.extractCode(lines,codeLines.start,codeLines.end);
-    console.log(JSON.stringify(code ,null, '\t'));
+    //console.log('Code: ');
+    //console.log(JSON.stringify(code ,null, '\t'));
+    //console.log(JSON.stringify(code[code.length-1] ,null, '\t'));
+    //console.log('Codeparts: ');
+    //console.log(codeLines);
+    let codeparts = fn.splitCodeIntoLines(code);
+    console.log(codeparts);
+    let type = fn.getTypeOfLine(codeparts);
+    console.log(type);
 
 
 
@@ -21,8 +29,9 @@ bindings.implementBinding = function (binding) {
 };
 
 
-bindings.implementBinding('./test/example_for_loop.Rmd');
 
+bindings.implementBinding('./test/example_for_loop.Rmd');
+//bindings.implementBinding('./examples/Aquestiondrivenprocess/workspace/main.Rmd');
 
 
 

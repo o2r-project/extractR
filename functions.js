@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const exec = require('child_process').exec;
+const rules = require('./rules');
 
 let fn = {}
 
@@ -65,6 +66,37 @@ fn.extractCode = function(file,start,end){
    return code;
 };
 
+/**
+ *
+ * @param code
+ * @returns {Array} including the codeline, the block and the line number of that specific block
+ */
+fn.splitCodeIntoLines = function (code) {
+    let codeLines = [];
+
+    for (let i = 0;i<code.length;i++) {
+        for (let j = 0;j<code[i].length; j++) {
+            codeLines.push([code[i][j],{"codeBlock: ": i ,"Line: " : j}]);
+        }
+    }
+    return codeLines;
+};
+
+//TODO Not working
+fn.getTypeOfLine = function (lines) {
+    for (let i = 0;i<lines.length;i++) {
+        for (let j = 0; j < lines[i].length; j++) {
+            let type = rules.findType(lines[i][j]);
+             if (type !== 'undefined' || '') {
+                 console.log(type);
+                lines.push(type);
+            } else {
+                console.log('Unable to detect type.')
+            }
+        }
+    }
+    return lines;
+}
 
 
 
