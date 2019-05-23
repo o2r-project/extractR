@@ -19,18 +19,14 @@ bindings.implementBinding = function (binding) {
     //console.log('Codeparts: ');
     //console.log(codeLines);
     let codeparts = fn.splitCodeIntoLines(code);
-    console.log(codeparts);
+    //console.log(codeparts);
     let type = fn.getTypeOfLine(codeparts);
     console.log(type);
-
-
-
-
+    let comments = fn.deleteComments(type);
+    console.log(comments);
 };
 
-
-
-bindings.implementBinding('./test/example_for_loop.Rmd');
+bindings.implementBinding('./test/example_inline_function.Rmd');
 //bindings.implementBinding('./examples/Aquestiondrivenprocess/workspace/main.Rmd');
 
 

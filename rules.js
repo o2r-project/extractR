@@ -3,55 +3,56 @@ let areYou = {};
 
 const variable = function (content) {
     //Test for variable of form v = x or v <- x
-    const isVariable1 = /.*?=(.*)/g;
-    const isVariable2 = /.*?<-(.*)/g;
+    const isVariable1 = /.*?=(.*)/;
+    const isVariable2 = /.*?<-(.*)/;
 
-    if (isVariable1.test(content) || isVariable2.test(content)){
-        return(true);
-    } else {
-        return false;
+    if (!fun(content) && (isVariable1.test(content) || isVariable2.test(content))){
+        return isVariable1;
     }
 
 };
 
 const loop = function (content) {
-    const isLoop = /(?:for)|(?:while)|(?:repeat)/g;
+    const isLoop = /(?:for)|(?:while)|(?:repeat)/;
 
-    if (isLoop.test(content) == true){
-        return(true);
-    } else {
-        return false;
+    if (isLoop.test(content) == true) {
+        return isLoop;
     }
+
 };
 
 const fun = function (content) {
-    const isFunction = /(?:function)/g;
+    const isFunction = /(?:function)/;
 
-    if (isFunction.test(content)== true){
-        return(true);
-    } else {
-        return false;
+    if (isFunction.test(content) == true) {
+        return isFunction;
     }
 };
 
 const lib = function (content) {
-    const isLibrary = /(?:library)/g;
+    const isLibrary = /(?:library)/;
 
-    if (isLibrary.test(content) == true){
-        return(true);
-    } else {
-        return false;
+    if (isLibrary.test(content) == true) {
+        return isLibrary;
     }
 };
 
 const inlineFunction = function (content) {
     const isInlineFunction = findFunctions(content);
     if (isInlineFunction == true) {
-        return(true);
-    } else {
-        return false;
+        return isInlineFunction;
     }
 };
+const variableCall = function (content) {
+    const isVariableCall = /[\w\-\_]+$/;
+    const isVariableCall2 = /([\w])_([\w])/;
+
+    if(isVariableCall.test(content) == true || isVariableCall2.test(content) == true){
+        return isVariableCall;
+    }
+};
+
+
 
 areYou.findType = function (file) {
     let type = '';
@@ -69,13 +70,18 @@ areYou.findType = function (file) {
             type = 'inlineFunction';
         } else if(lib(file)) {
             //TODO processLibrary(file[i]);
-            console.log('library found in line ' +  ' : ' + file[i]);
+            console.log('library found in line ' +  ' : ' + file);
             type = 'library';
         } else if (loop(file)) {
             //TODO processloop(file[i]);
-            console.log('loop found in line ' + ' : ' + file[i]);
+            console.log('loop found in line ' + ' : ' + file);
             type = 'loop';
-        } else{
+        }
+        else if (variableCall(file)) {
+            //TODO processloop(file[i]);
+            console.log('variable call found in line ' + ' : ' + file);
+            type = 'variable call';
+        }else{
                 //console.log("Unable to detect type in line " + i + "!");
                 console.log();
         }
@@ -89,8 +95,11 @@ areYou.findType = function (file) {
 
 const findFunctions = function (content) {
     let isFunction = /(?!\bif\b|\bfor\b|\bwhile\b|\brepeat\b)(\b[\w]+\b)[\s\n\r]*(?=\(.*\))/g;
-    if(isFunction.test(content)){
-        return(true);
+
+    if(!loop(content)){
+        if (isFunction.test(content)) {
+            return true;
+        }
     }
 };
 

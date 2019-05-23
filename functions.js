@@ -73,30 +73,60 @@ fn.extractCode = function(file,start,end){
  */
 fn.splitCodeIntoLines = function (code) {
     let codeLines = [];
+    //code = fn.deleteComments(code);
 
     for (let i = 0;i<code.length;i++) {
         for (let j = 0;j<code[i].length; j++) {
-            codeLines.push([code[i][j],{"codeBlock: ": i ,"Line: " : j}]);
-        }
-    }
-    return codeLines;
-};
-
-//TODO Not working
-fn.getTypeOfLine = function (lines) {
-    for (let i = 0;i<lines.length;i++) {
-        for (let j = 0; j < lines[i].length; j++) {
-            let type = rules.findType(lines[i][j]);
-             if (type !== 'undefined' || '') {
-                 console.log(type);
-                lines.push(type);
-            } else {
-                console.log('Unable to detect type.')
+            if (code[i][j] != '') {
+                codeLines.push([code[i][j], {"codeBlock: ": i, "Line: ": j}]);
             }
         }
     }
+    return codeLines
+};
+
+fn.getTypeOfLine = function (lines) {
+    let valueToPush = [];
+
+    for(let i = 0;i<lines.length;i++) {
+        let type = rules.findType(lines[i][0]);
+        if (type !== 'undefined' && type !== '') {
+            lines[i].splice(lines[i].length,0,type);
+        } else {
+            console.log('Unable to detect type.')
+        }
+    }
     return lines;
-}
+};
+
+fn.filterComments = function (code) {
+    let comments = [];
+    let commentExpression = /#(.*)/g;
+
+    for (let i = 0;i<code.length;i++) {
+        for (let j = 0;j<code[i].length; j++) {
+            if (commentExpression.test(code[i][j])) {
+                comments.push(code[i][j].match(commentExpression)[0], {"codeBlock: ": i, "Line: ": j});
+            }
+        }
+    }
+
+    return comments;
+};
+
+//TODO NOT working --> Next steps: Identify variables of identified functions, process loops...
+fn.deleteComments = function (code) {
+    let commentExpression = /#(.*)/g;
+    for(let i = 0; i<code.length;i++) {
+        for (let j = 0;j<code[i].length; j++) {
+            if (commentExpression.test(code[i][j])) {
+                let comment = code[i][j].match(commentExpression)[0];
+                code[i][j].replace(comment,'');
+            }
+        }
+    }
+    return code;
+};
 
 
 
