@@ -56,34 +56,35 @@ const variableCall = function (content) {
 
 areYou.findType = function (file) {
     let type = '';
+    //console.log(file);
         if(variable(file)) {
             //TODO processVariable(file[i]);
-            console.log('variable found in line ' + ' : ' + file);
+            //console.log('variable found ');
             type = 'variable';
         } else if(fun(file)) {
             //TODO processFunction(file[i]);
-            console.log('function found in line ' + ' : ' + file);
+            //console.log('function found ');
             type = 'function';
         } else if(inlineFunction(file)) {
             //TODO processInlineFunction(file[i]);
-            console.log('inlineFunction found in line '  + ' : ' + file);
+            //console.log('inlineFunction found ');
             type = 'inlineFunction';
         } else if(lib(file)) {
             //TODO processLibrary(file[i]);
-            console.log('library found in line ' +  ' : ' + file);
+            //console.log('library found ');
             type = 'library';
         } else if (loop(file)) {
             //TODO processloop(file[i]);
-            console.log('loop found in line ' + ' : ' + file);
+            //console.log('loop found ');
             type = 'loop';
         }
         else if (variableCall(file)) {
             //TODO processloop(file[i]);
-            console.log('variable call found in line ' + ' : ' + file);
+            //console.log('variable call found');
             type = 'variable call';
         }else{
                 //console.log("Unable to detect type in line " + i + "!");
-                console.log();
+                //console.log();
         }
         return type;
 };
