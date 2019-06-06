@@ -12,13 +12,36 @@ const variable = function (content) {
 
 };
 
-const loop = function (content) {
-    const isLoop = /(?:for)|(?:while)|(?:repeat)/;
+const forloop = function (content) {
+    const isForLoop = /(?:for)/;
 
-    if (isLoop.test(content) == true) {
-        return isLoop;
+    if (isForLoop.test(content) == true) {
+        return isForLoop;
     }
+};
 
+const whileloop = function (content) {
+    const isWhileLoop = /(?:while)/;
+
+    if(isWhileLoop.test(content) == true){
+        return isWhileLoop;
+    }
+};
+
+const repeatloop = function (content) {
+    const isRepeatLoop = /(?:repeat)/;
+
+   if(isRepeatLoop.test(content) == true){
+        return isRepeatLoop;
+    }
+};
+
+const conditional = function (content) {
+  const isConditional = /(?:if)/;
+
+    if (isConditional.test(content) == true) {
+        return isConditional;
+    }
 };
 
 const fun = function (content) {
@@ -52,7 +75,19 @@ const variableCall = function (content) {
     }
 };
 
-
+areYou.getTypeOfLine = function (lines) {
+    //console.log('VALUE: ' + lines[1].value);
+    //console.log('Index: ' + JSON.stringify(lines[1]));
+    for(let i = 0;i<lines.length;i++) {
+        let type = areYou.findType(lines[i].value);
+        if (type !== 'undefined' && type !== '') {
+            lines[i].type = type;
+        } else {
+            console.log('Unable to detect type.')
+        }
+    }
+    return lines;
+};
 
 areYou.findType = function (file) {
     let type = '';
@@ -73,21 +108,99 @@ areYou.findType = function (file) {
             //TODO processLibrary(file[i]);
             //console.log('library found ');
             type = 'library';
-        } else if (loop(file)) {
-            //TODO processloop(file[i]);
-            //console.log('loop found ');
-            type = 'loop';
+        } else if (forloop(file)) {
+            type = 'forLoop';
+        }
+        else if (whileloop(file)) {
+            type = 'whileLoop';
+        }
+        else if (repeatloop(file)) {
+            type = 'repeatLoop';
         }
         else if (variableCall(file)) {
             //TODO processloop(file[i]);
             //console.log('variable call found');
             type = 'variable call';
+        }
+        else if (conditional(file)) {
+            //TODO processCond(file[i]);
+            //console.log('variable call found');
+            type = 'conditional';
         }else{
                 //console.log("Unable to detect type in line " + i + "!");
                 //console.log();
         }
         return type;
 };
+
+getVariableOfLoop = function (content) {
+
+};
+
+
+//Loops
+//TODO --> Next steps: 1)Identify variables of identified functions, 2)Trace back variables...
+areYou.processLoop = function (json) {
+    for (let i = 0; i < json.Lines.length; i++){
+        if(json.Lines[i].type == 'forLoop' || json.Lines[i].type == 'whileLoop' || json.Lines[i].type == 'repeatLoop' ){
+            let end =  searchEnd(json,json.Lines[i].codeBlock, json.Lines[i].Line);
+            let start = i;
+            addLoopContent(json,start,end);
+            getContentInBrackets(json.Lines[i].value)
+        }
+    }
+
+    return json
+
+};
+
+//TODO: AddContent() function for every content type
+
+
+addLoopContent = function (json,startOfLoopIndex,endOfLoopIndex) {
+    let numOfItems = 0;
+    let lineOfLoopContent = [];
+    json.Lines[startOfLoopIndex].content = [];
+    for(let i = startOfLoopIndex+1; i < endOfLoopIndex;i++){
+        let line = i;
+        let value = json.Lines[i].value;
+        json.Lines[startOfLoopIndex].content[numOfItems] = {line,value};
+        lineOfLoopContent.push(startOfLoopIndex);
+        numOfItems++;
+    }
+    console.log('175 ' + lineOfLoopContent);
+    //Then delete dublicate items TODO: Make it work more than once
+    for(let j = 0;j<lineOfLoopContent.length;j++) {
+            let dublicateIndex = json.Lines.findIndex(a => a.Line == lineOfLoopContent[j]);
+            console.log('DI: ' + dublicateIndex);
+            //json.Lines.splice(dublicateIndex,1);
+    }
+    return json;
+};
+
+
+searchEnd = function (json,blockIndex, lineIndex) {
+    lineIndex = json.Lines.findIndex(a => a.Line == lineIndex);
+    let openCount = 0;
+    let closedCount = 0;
+    let opening = /{/g;
+    let closing = /}/g;
+    for (let i = lineIndex; i < json.Lines.length;i++){
+        if(opening.test(json.Lines[i].value)){
+            openCount+= json.Lines[i].value.match(opening).length;
+        } else if(closing.test(json.Lines[i].value)){
+            closedCount+= json.Lines[i].value.match(closing).length;
+            console.log(json.Lines[i].value.match(closing).length);
+            openCount -= json.Lines[i].value.match(closing).length;
+        }
+        if ((openCount == 0) && i != lineIndex){
+            return json.Lines[i].Line;
+        }
+    }
+};
+
+//Inline functions...
+
 
 
 
@@ -97,11 +210,20 @@ areYou.findType = function (file) {
 const findFunctions = function (content) {
     let isFunction = /(?!\bif\b|\bfor\b|\bwhile\b|\brepeat\b)(\b[\w]+\b)[\s\n\r]*(?=\(.*\))/g;
 
-    if(!loop(content)){
+    if(!forloop(content)|| !whileloop || !repeatloop){
         if (isFunction.test(content)) {
             return true;
         }
     }
+};
+
+
+getContentInBrackets = function (content) {
+    let start = content.indexOf('(');
+    let end = content.lastIndexOf(')');
+    let innerContent = content.substring(start+1,end);
+    let variables = innerContent.split(',');
+    return variables;
 };
 
 module.exports = areYou;

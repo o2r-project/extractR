@@ -20,12 +20,13 @@ bindings.implementBinding = function (binding) {
     //console.log(codeLines);
     let codeparts = fn.splitCodeIntoLines(code);
    // console.log(codeparts);
-    let type = fn.getTypeOfLine(codeparts);
+    let type = rules.getTypeOfLine(codeparts);
     let comments = fn.deleteComments(type);
     let json = fn.array2Json(comments);
     //console.log(json);
-    let loop = fn.processLoop(json);
-    //console.log(loop);
+    let jsonObj = {'Lines': json};
+    let loop = rules.processLoop(jsonObj);
+    console.log(JSON.stringify(loop));
 };
 
 bindings.implementBinding('./test/example_for_loop.Rmd');
