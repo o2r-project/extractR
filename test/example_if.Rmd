@@ -19,23 +19,17 @@ When you click the **Knit** button a document will be generated that includes bo
 
 You can also embed plots, for example:
 
-
 ```{r pressure, echo=FALSE}
-a = 1:10
-res = numeric(length = length(a))
-for (i in seq_along(a)){
-  res[i] = a[i]
-  test = blanbl
+x <- 5
+if(x > 0){
+print("Positive number")
 }
-res
 ```
 
-```{r pressure, echo=FALSE}
-a = 1:10
-res = numeric(length = length(a))
-for (i in seq_along(a)){
-  res[i] = a[i]
-}
-res
-```
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+x <- 5
+if(x > 0){
+print("Positive number")
+}

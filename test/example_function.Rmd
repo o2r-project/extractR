@@ -20,9 +20,9 @@ When you click the **Knit** button a document will be generated that includes bo
 You can also embed plots, for example:
 
 ```{r pressure, echo=FALSE}
-
-plotVariable = function(pressure){
-  plot(pressure)
+plotVariable = function(pressure,cars){
+   getData(cars)
+   plot(pressure)
 }
 ```
 

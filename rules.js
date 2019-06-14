@@ -203,15 +203,15 @@ processVarContent = function (varContent) {
     }
 };
 /********************************************************
-//InlineFunctions TODO: No
-//Loops: TODO NO
-//Variables TODO yes
-//Functions (Creation not calls) TODO: yes
-//conditional (if) TODO: yes
-//variable calls TODO:yes
-//lib TODO: yes
-//other R files TODO: yes
-//sequence TODO: yes
+//InlineFunctions TODO Ready: Yes
+//Loops: TODO Ready: Yes
+//Variables TODO Ready: Yes
+//Functions (Creation not calls) TODO Ready: Noooo
+//conditional (if) TODO Ready: yes
+//variable calls TODO Ready: No
+//lib TODO Ready: No
+//other R files TODO Ready: No
+//sequence TODO Ready: No
 ***********************************************************/
 //TODO Loops
 //TODO --> Next steps: 1)Identify variables of identified functions, 2)Trace back variables...
@@ -221,14 +221,15 @@ areYou.processLoop = function (json) {
             let end =  searchEnd(json,json.Lines[i].codeBlock, json.Lines[i].Line);
             let start = i;
             addLoopContent(json,start,end);
-            let brCont = getContentInBrackets(json.Lines[i].value);
-            let brContProccessed = processBracketContentLoops(brCont, json.Lines[i].type);
-            console.log(brContProccessed);
-            brContProccessed.type = areYou.findType(brContProccessed.sequence);
-            json.Lines[i].loopOver = brContProccessed;
+            if(json.Lines[i].type != 'repeatLoop') {
+                let brCont = getContentInBrackets(json.Lines[i].value, json.Lines[i].type);
+                let brContProccessed = processBracketContentLoops(brCont, json.Lines[i].type);
+                brContProccessed.type = areYou.findType(brContProccessed.sequence);
+                json.Lines[i].loopOver = brContProccessed;
+            }
         }
     }
-    let processedLoop = deleteLoopDups(json);
+    let processedLoop = deleteDups(json);
     return processedLoop;
 
 };
@@ -242,6 +243,7 @@ addLoopContent = function (json,startOfLoopIndex,endOfLoopIndex) {
         json.Lines[startOfLoopIndex].content[numOfItems] = {line,value};
         numOfItems++;
     }
+    console.log(json);
     return json;
 };
 
@@ -266,12 +268,14 @@ searchEnd = function (json,blockIndex, lineIndex) {
     }
 };
 
-deleteLoopDups = function (json) {
+deleteDups = function (json) {
     let lineOfLoopContent = [];
     for(let j = 0; j<json.Lines.length;j++){
-        if(json.Lines[j].type === 'forLoop'){
-            for(let k = 0; k< json.Lines[j].content.length;k++){
-                lineOfLoopContent.push(json.Lines[j].content[k].line);
+        if(json.Lines[j].type === 'forLoop' || json.Lines[j].type === 'whileLoop' || json.Lines[j].type === 'repeatLoop' || json.Lines[j].type === 'conditional'){
+            if(json.Lines[j].content != undefined) {
+                for (let k = 0; k < json.Lines[j].content.length; k++) {
+                    lineOfLoopContent.push(json.Lines[j].content[k].line);
+                }
             }
         }
     }
@@ -287,7 +291,10 @@ areYou.processInlineFunction = function (json) {
     for (let i = 0; i < json.Lines.length; i++){
         if(json.Lines[i].type == 'inlineFunction'){
             let funCont = getContentInBrackets(json.Lines[i].value);
+            let fun = getFunction(json.Lines[i].value);
+            console.log(fun);
             let funContProcessed = processBracketContentInFun(funCont);
+            json.Lines[i].call = fun;
             json.Lines[i].content = funContProcessed;
             typeArray = [];
             for (let j = 0; j < funContProcessed.args.length;j++){
@@ -316,6 +323,30 @@ areYou.processVariables = function (json) {
     return json;
 };
 
+//TODO Cond
+areYou.processCond = function (json) {
+    for (let i = 0; i < json.Lines.length;i++) {
+        if (json.Lines[i].type == 'conditional') {
+            let end =  searchEnd(json,json.Lines[i].codeBlock, json.Lines[i].Line);
+            let start = i;
+            addLoopContent(json,start,end);
+        }
+    }
+    let processedCond = deleteDups(json);
+    return processedCond;
+};
+
+//TODO VarCall ---> Here you stopped
+areYou.processVarCall = function (json) {
+    for (let i = 0; i < json.Lines.length;i++) {
+        if (json.Lines[i].type == 'conditional') {
+            let varCallCont = json.Lines[i].value;
+            json.Lines[i].content.value = varCallCont;
+        }
+    }
+    return json;
+};
+
 //Helper functions
 
 const findFunctions = function (content) {
@@ -328,13 +359,19 @@ const findFunctions = function (content) {
     }
 };
 
+getFunction = function (content) {
+    let fun = content.substring(0,content.indexOf('('));
+    console.log(fun);
+    return fun;
+};
 
-getContentInBrackets = function (content) {
+getContentInBrackets = function (content,type) {
     let start = content.indexOf('(');
     let end = content.lastIndexOf(')');
-    let innerContent = content.substring(start+1,end);
+    let innerContent = content.substring(start + 1, end);
     let variables = innerContent.split(',');
     return variables;
+
 };
 
 module.exports = areYou;

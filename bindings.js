@@ -30,10 +30,15 @@ bindings.implementBinding = function (binding) {
     let inlineFunc = rules.processInlineFunction(jsonObj);
     //console.log(JSON.stringify(inlineFunc));
     let variable = rules.processVariables(jsonObj);
-    console.log(JSON.stringify(variable));
+    //console.log(JSON.stringify(variable));
+    let cond = rules.processCond(jsonObj);
+    console.log(JSON.stringify(cond));
 };
 
-bindings.implementBinding('./test/example_for_loop.Rmd');
+
+bindings.implementBinding('./test/example_if.Rmd');
+//bindings.implementBinding('./test/example_repeat_loop.Rmd');
+//bindings.implementBinding('./test/example_for_loop.Rmd');
 //bindings.implementBinding('./test/example_inline_function.Rmd');
 //bindings.implementBinding('./examples/Aquestiondrivenprocess/workspace/main.Rmd');
 
