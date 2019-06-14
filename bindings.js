@@ -26,10 +26,15 @@ bindings.implementBinding = function (binding) {
     //console.log(json);
     let jsonObj = {'Lines': json};
     let loop = rules.processLoop(jsonObj);
-    console.log(JSON.stringify(loop));
+    //console.log(JSON.stringify(loop));
+    let inlineFunc = rules.processInlineFunction(jsonObj);
+    //console.log(JSON.stringify(inlineFunc));
+    let variable = rules.processVariables(jsonObj);
+    console.log(JSON.stringify(variable));
 };
 
 bindings.implementBinding('./test/example_for_loop.Rmd');
+//bindings.implementBinding('./test/example_inline_function.Rmd');
 //bindings.implementBinding('./examples/Aquestiondrivenprocess/workspace/main.Rmd');
 
 

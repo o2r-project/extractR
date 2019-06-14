@@ -21,10 +21,11 @@ You can also embed plots, for example:
 
 
 ```{r pressure, echo=FALSE}
-a = 1:10
+}
 res = numeric(length = length(a))
 for (i in seq_along(a)){
   res[i] = a[i]
+  test = blanbl
 }
 res
 ```
