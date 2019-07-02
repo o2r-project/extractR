@@ -13,34 +13,86 @@ pJ.addFileContentToJson = function (jsonObj) {
     let exFile = rules.processExFile(lib);
     let seq = rules.processSequence(exFile);
     let contJson = seq;
-    pJ.ProcessNestedCont(contJson);
+    //pJ.ProcessNestedCont(contJson);
     return contJson;
 };
 
-//TODO Not working --> Start here next time
+processJsonTypeInlineFunction = function (jsonObj,type) {
+    if (type == 'inlineFunction'){
+
+    }
+};
+
+
+
+processJsonTypeWithoutLoopsAndConds = function (jsonObj, type) {
+        switch (type) {
+            case 'variable':
+                return rules.processVariables(jsonObj);
+                break;
+            case 'variable call':
+                return rules.processVarCall(jsonObj);
+                break;
+            case 'sequence':
+                return rules.processSequence(jsonObj);
+                break;
+            default:
+                console.log('different type detected');
+
+        }
+};
+
+processJsonTypeLoopsAndConds = function (jsonObj, type) {
+    switch (type) {
+        case 'forLoop':
+            return rules.processLoop(jsonObj);
+            break;
+        case 'whileLoop':
+            return rules.processLoop(jsonObj);
+            break;
+        case 'repeatLoop':
+            return rules.processLoop(jsonObj);
+            break;
+        case 'conditional':
+            return rules.processCond(jsonObj);
+            break;
+        default:
+            console.log('different type detected');
+
+    }
+};
+
+
+
 pJ.ProcessNestedCont = function (jsonObj) {
-    Object.entries(jsonObj.Lines).forEach(([key,value]) => {
-        if (value.content != undefined) {
-            let keys = Object.keys(value.content);
-            console.log('Val ' + JSON.stringify(value.content));
-            console.log('key ' + key);
-            console.log(keys[0]);
-            if (isNaN(keys[0])) {
-                let type = value.content.type;
-                console.log(jsonObj.Lines[key]);
-
-                //Process non Recursive HERE
-
-            }else{
-                if (typeof Array.isArray(jsonObj.Lines[key])) {
-                    console.log('RECURSIVE: ' + JSON.stringify(jsonObj.Lines[key].content));
-                    pJ.ProcessNestedCont(jsonObj.Lines[key].content)
-                }
+    console.log(allKeys(jsonObj));
+    console.log(JSON.stringify(jsonObj));
+    let loopTypes = ['forLoop','whileLoop','repeatLoop','conditional'];
+    for (let i = 0; i<jsonObj.Lines.length;i++){
+        if(!loopTypes.includes(jsonObj.Lines[i].type)) {
+            if (jsonObj.Lines[i].content.value != undefined) {
+                processJsonTypeWithoutLoopsAndConds(jsonObj, jsonObj.Lines[i].content.type);
             }
         }
-    })
+        if(jsonObj.Lines[i].type == 'inlineFunction'){
+            if(jsonObj.Lines[i].content.args.value instanceof Object){
+                console.log('OBJECT: ' + jsonObj.Lines[i].content.args.value);
+            }
+        }
+        if(loopTypes.includes(jsonObj.Lines[i].type)){
 
+        }
+    }
 };
+
+allKeys = function(object) {
+    return Object.keys(object).reduce((keys, key) =>
+            keys.concat(key,
+                typeof object[key] === 'object' ? allKeys(object[key]) : []
+            ),
+        []
+    );
+}
 
 
 

@@ -33,8 +33,8 @@ bindings.implementBinding = function (binding) {
 //bindings.implementBinding('./test/example_library.Rmd');
 //bindings.implementBinding('./test/example_if.Rmd');
 //bindings.implementBinding('./test/example_repeat_loop.Rmd');
-bindings.implementBinding('./test/example_for_loop.Rmd');
-//bindings.implementBinding('./test/example_inline_function.Rmd');
+//bindings.implementBinding('./test/example_for_loop.Rmd');
+bindings.implementBinding('./test/example_inline_function.Rmd');
 //bindings.implementBinding('./examples/Aquestiondrivenprocess/workspace/main.Rmd');
 
 

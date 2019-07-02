@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo)
 ```
 
 ## R Markdown
@@ -22,7 +22,9 @@ You can also embed plots, for example:
 ```{r pressure, echo=FALSE}
 x <- 5
 if(x > 0){
+    if(a<7){
 print("Positive number")
+}
 }
 ```
 

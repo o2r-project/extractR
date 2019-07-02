@@ -19,8 +19,11 @@ When you click the **Knit** button a document will be generated that includes bo
 
 You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}    # dkgcwi
-plot(pressure, test) # Get Pressure
+```{r pressure, echo=FALSE}
+plot(pressure, test)
+ResSOP <- shFun(Q, TP, SU, V1, P1, D1, M1, A1,
+                sigmaT, 1, etaH, deltaB, deltaD, deltaI,
+                deltaE, muS, alpha, beta, Vmax, Dmin, Tp)
 #zcwvei
 
 ```

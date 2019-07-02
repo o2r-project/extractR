@@ -1,6 +1,10 @@
 let areYou = {};
 
-//TODO Variable check for loop content... Its not working for a[i] = res[i]
+//TODO Create small example finally :)
+
+
+
+//TODO
 const variable = function (content) {
     //Test for variable of form v = x or v <- x
     const isVariable1 = /^\s*\b(?![(])[\w\[\]]*\s?=\s?[\w\[\]]+/;
@@ -181,7 +185,9 @@ processBracketContentLoops = function (brContent,type) {
         }
     }
 };
-//InlineFunctions
+//InlineFunctions --> TODO Reorder function arguments: Case1: functionArg = value, Case2: value --> Start Thursday
+// Do not push it in array and make it unnecessary complicated --> Keep it simple
+// content.args{1,2,3...}
 processBracketContentInFun = function (funContent) {
     let parts = [];
     for(let i = 0; i<funContent.length; i++){
@@ -195,12 +201,43 @@ processBracketContentInFun = function (funContent) {
 
 //Variables
 processVarContent = function (varContent) {
-    let variable = varContent.substring(0,varContent.indexOf('='));
-    let value = varContent.substring(varContent.indexOf('=')+1);
-    return{
-        variable:variable,
-        value:value
+    console.log('CONT ' + varContent);
+    if(varContent.indexOf('=') != -1) {
+        let variable = varContent.substring(0, varContent.indexOf('='));
+        let value = varContent.substring(varContent.indexOf('=') + 1);
+        return{
+            variable:variable,
+            value:value
+        }
+    } else {
+        let variable = varContent.substring(0, varContent.indexOf('<'));
+        let value = varContent.substring(varContent.indexOf('<') + 2);
+        return{
+            variable:variable,
+            value:value
+        }
     }
+
+};
+
+processMultiLineVarContent = function (jsonAtVarLine,startIndex) {
+    let closingBracket = /[)]/g;
+    let value = '';
+    let end;
+    for (let i = startIndex; i<jsonAtVarLine.Lines.length; i++){
+        console.log(jsonAtVarLine.Lines[i].value);
+        if(closingBracket.test(jsonAtVarLine.Lines[i].value)){
+            end = jsonAtVarLine.Lines[i].Line;
+            for(let j = startIndex; j<= end; j++){
+                value+=jsonAtVarLine.Lines[j].value;
+                value = value.replace(/ /g, '');
+            }
+        }
+    }
+    return {
+        value:value,
+        end: end
+    };
 };
 /********************************************************
 //InlineFunctions TODO Ready: Yes
@@ -236,7 +273,7 @@ areYou.processLoop = function (json) {
 addLoopContent = function (json,startOfLoopIndex,endOfLoopIndex) {
     let numOfItems = 0;
     json.Lines[startOfLoopIndex].content = [];
-    for(let i = startOfLoopIndex+1; i < endOfLoopIndex;i++){
+    for(let i = startOfLoopIndex+1; i <= endOfLoopIndex;i++){
         let line = i;
         let value = json.Lines[i].value;
         let type = areYou.findType(value);
@@ -312,9 +349,23 @@ areYou.processVariables = function (json) {
     for (let i = 0; i < json.Lines.length;i++){
         if(json.Lines[i].type == 'variable'){
             let varCont = json.Lines[i].value;
+            if(varCont.indexOf('(') != -1 && varCont.indexOf(')') != -1) {
+                let varContProcessed = processVarContent(varCont);
+                varContProcessed.type = areYou.findType(varContProcessed.value);
+                json.Lines[i].content = varContProcessed;
+            } else {
+                let preprocessVarCond = processMultiLineVarContent(json,i);
+                let varContProcessed = processVarContent(preprocessVarCond.value);
+                varContProcessed.type = areYou.findType(varContProcessed.value);
+                json.Lines[i].content = varContProcessed;
+                //TODO filter dublicates between start(i) and end --> Next step
+            }
+        }
+        if(json.Lines[i].content != undefined && json.Lines[i].content.type == 'variable'){
+            let varCont = json.Lines[i].content.value;
             let varContProcessed = processVarContent(varCont);
             varContProcessed.type = areYou.findType(varContProcessed.value);
-            json.Lines[i].content = varContProcessed;
+            json.Lines[i].content.content = varContProcessed;
         }
     }
     return json;
@@ -333,12 +384,16 @@ areYou.processCond = function (json) {
     return processedCond;
 };
 
-//TODO VarCall ---> Here you stopped
+//TODO VarCall
 areYou.processVarCall = function (json) {
     for (let i = 0; i < json.Lines.length;i++) {
         if (json.Lines[i].type == 'variable call') {
             let varCallCont = json.Lines[i].value;
-            json.Lines[i].content = varCallCont;
+            json.Lines[i].content = {'value':varCallCont};
+        }
+        if(json.Lines[i].content != undefined && json.Lines[i].content.type == 'variable call'){
+            let varCallCont = json.Lines[i].content.value;
+            json.Lines[i].content.content = {'value':varCallCont};
         }
     }
     return json;
@@ -372,6 +427,10 @@ areYou.processSequence = function (json) {
         if (json.Lines[i].type == 'sequence') {
             let seq = json.Lines[i].value;
             json.Lines[i].content = seq;
+        }
+        if(json.Lines[i].content != undefined && json.Lines[i].content.type == 'sequence'){
+            let seq = json.Lines[i].content.value;
+            json.Lines[i].content.content = seq;
         }
     }
     return json;
