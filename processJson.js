@@ -1,10 +1,12 @@
 const rules = require('./rules');
-const _ = require('lodash/core');
+const fn = require('./functions');
+
 
 let pJ = {};
 
 pJ.addFileContentToJson = function (jsonObj) {
-    let loop = rules.processLoop(jsonObj);
+    let fun = rules.processFunction(jsonObj);
+    let loop = rules.processLoop(fun);
     let inlineFunc = rules.processInlineFunction(loop);
     let variable = rules.processVariables(inlineFunc);
     let cond = rules.processCond(variable);
@@ -13,37 +15,70 @@ pJ.addFileContentToJson = function (jsonObj) {
     let exFile = rules.processExFile(lib);
     let seq = rules.processSequence(exFile);
     let contJson = seq;
-    //pJ.ProcessNestedCont(contJson);
+    pJ.ProcessNestedCont(contJson);
     return contJson;
 };
 
-processJsonTypeInlineFunction = function (jsonObj,type) {
-    if (type == 'inlineFunction'){
+//TODO: Add lines to find all plot functions in script
+pJ.findPlotLines = function (jsonObj,plotFunctions) {
+    let plotFunctionsToFind = fn.readFile(plotFunctions);
+    let lines = plotFunctionsToFind.split(/\r?\n/);
+};
 
+
+
+//Has call,content.args.value[array] and content.args.type[array]
+//TODO Add further possible types after testing
+processJsonTypesFromInlineFunction = function (jsonObj) {
+    let type = jsonObj.content.type;
+    let value = jsonObj.content.args.value;
+    for (let i = 0; i < value.length;i++) {
+        if (type[i] == 'variable call') {
+            if (value[i].indexOf('=') != -1) {
+                value = value[i].substring(0, value[i].indexOf('='))
+            }
+            if(value[i].indexOf('<') != -1){
+
+            }
+            jsonObj.variables = value;
+        }
     }
+    return jsonObj;
+};
+
+processJsonTypesFromVariables = function(jsonObj){
+    let type = jsonObj.content.type;
+    let value = jsonObj.content.value;
+    let variables = rules.getContentInBrackets(value);
+    console.log('VARS ' + variables);
+
 };
 
 
 
 processJsonTypeWithoutLoopsAndConds = function (jsonObj, type) {
         switch (type) {
+            //has content.variable, content.value, content.type
             case 'variable':
-                return rules.processVariables(jsonObj);
+                return processJsonTypesFromVariables(jsonObj);
                 break;
+                //has content.value
             case 'variable call':
-                return rules.processVarCall(jsonObj);
+                //TODO Update
                 break;
+                //has content.value
             case 'sequence':
-                return rules.processSequence(jsonObj);
+                //TODO Update
                 break;
             default:
-                console.log('different type detected');
+                return
 
         }
 };
 
 processJsonTypeLoopsAndConds = function (jsonObj, type) {
     switch (type) {
+        //has content, loopOver.value, loopOver.sequence,loopOver.type
         case 'forLoop':
             return rules.processLoop(jsonObj);
             break;
@@ -57,7 +92,7 @@ processJsonTypeLoopsAndConds = function (jsonObj, type) {
             return rules.processCond(jsonObj);
             break;
         default:
-            console.log('different type detected');
+            return
 
     }
 };
@@ -65,9 +100,10 @@ processJsonTypeLoopsAndConds = function (jsonObj, type) {
 
 
 pJ.ProcessNestedCont = function (jsonObj) {
-    console.log(allKeys(jsonObj));
-    console.log(JSON.stringify(jsonObj));
-    let loopTypes = ['forLoop','whileLoop','repeatLoop','conditional'];
+    //console.log(allKeys(jsonObj));
+    //console.log(JSON.stringify(jsonObj));
+    let loopTypes = ['forLoop','whileLoop','repeatLoop','conditional','function'];
+
     for (let i = 0; i<jsonObj.Lines.length;i++){
         if(!loopTypes.includes(jsonObj.Lines[i].type)) {
             if (jsonObj.Lines[i].content.value != undefined) {
@@ -76,13 +112,16 @@ pJ.ProcessNestedCont = function (jsonObj) {
         }
         if(jsonObj.Lines[i].type == 'inlineFunction'){
             if(jsonObj.Lines[i].content.args.value instanceof Object){
-                console.log('OBJECT: ' + jsonObj.Lines[i].content.args.value);
+                //console.log('OBJECT: ' + jsonObj.Lines[i].content.args.value);
+                processJsonTypesFromInlineFunction(jsonObj.Lines[i])
             }
         }
         if(loopTypes.includes(jsonObj.Lines[i].type)){
+            //get variables of loops
 
         }
     }
+    return jsonObj;
 };
 
 allKeys = function(object) {

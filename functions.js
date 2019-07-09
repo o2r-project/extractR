@@ -3,9 +3,9 @@ const path = require('path');
 const exec = require('child_process').exec;
 const rules = require('./rules');
 
-let fn = {}
+let fn = {};
 
-fn.readRmarkdown = function (file) {
+fn.readFile = function (file) {
     if (!file){
         throw new Error('File does not exist.');
     }

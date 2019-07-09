@@ -97,8 +97,6 @@ const variableCall = function (content) {
 };
 
 areYou.getTypeOfLine = function (lines) {
-    //console.log('VALUE: ' + lines[1].value);
-    //console.log('Index: ' + JSON.stringify(lines[1]));
     for(let i = 0;i<lines.length;i++) {
         let type = areYou.findType(lines[i].value);
         if (type !== 'undefined') {
@@ -191,17 +189,22 @@ processBracketContentLoops = function (brContent,type) {
 processBracketContentInFun = function (funContent) {
     let parts = [];
     for(let i = 0; i<funContent.length; i++){
+        console.log(funContent.length);
         let con = funContent[i].split(',');
-        parts.push(con)
+        parts.push(con[0]);
+        console.log(parts);
     }
     return{
         args:{'value':parts}
     }
 };
 
+
+
+
 //Variables
 processVarContent = function (varContent) {
-    console.log('CONT ' + varContent);
+    //console.log('CONT ' + varContent);
     if(varContent.indexOf('=') != -1) {
         let variable = varContent.substring(0, varContent.indexOf('='));
         let value = varContent.substring(varContent.indexOf('=') + 1);
@@ -219,16 +222,16 @@ processVarContent = function (varContent) {
     }
 
 };
-
 processMultiLineVarContent = function (jsonAtVarLine,startIndex) {
-    let closingBracket = /[)]/g;
+    let closingBracket = /[)]/;
     let value = '';
-    let end;
-    for (let i = startIndex; i<jsonAtVarLine.Lines.length; i++){
-        console.log(jsonAtVarLine.Lines[i].value);
-        if(closingBracket.test(jsonAtVarLine.Lines[i].value)){
+    let end = 0;
+    let firstOcc = true;
+    for (let i = startIndex; i< jsonAtVarLine.Lines.length; i++){
+        if(closingBracket.test(jsonAtVarLine.Lines[i].value) == true && firstOcc == true){
+            firstOcc = false;
             end = jsonAtVarLine.Lines[i].Line;
-            for(let j = startIndex; j<= end; j++){
+            for(let j = startIndex; j <= end; j++){
                 value+=jsonAtVarLine.Lines[j].value;
                 value = value.replace(/ /g, '');
             }
@@ -250,6 +253,26 @@ processMultiLineVarContent = function (jsonAtVarLine,startIndex) {
 //other R files TODO Ready: Yes
 //sequence TODO Ready: yes
 ***********************************************************/
+
+areYou.processFunction = function (json) {
+    let startEnd = [];
+    for (let i = 0; i < json.Lines.length;i++){
+        if(json.Lines[i].type == 'function'){
+            let end =  searchEnd(json,json.Lines[i].codeBlock, json.Lines[i].Line);
+            let start = i;
+            let vars = areYou.getContentInBrackets(json.Lines[i].value);
+            console.log('VARS ' + vars);
+            json.Lines[i].content = {'vars': vars};
+            startEnd.push(start,end);
+        }
+    }
+    console.log('SE ' + startEnd[0]);
+    //TODO
+    // https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Array/slice
+    let jsonNew = json.Lines.filter(line => );
+    console.log('JSON ' + JSON.stringify(jsonNew));
+    return json;
+};
 //TODO Loops
 areYou.processLoop = function (json) {
     for (let i = 0; i < json.Lines.length; i++){
@@ -258,7 +281,7 @@ areYou.processLoop = function (json) {
             let start = i;
             addLoopContent(json,start,end);
             if(json.Lines[i].type != 'repeatLoop') {
-                let brCont = getContentInBrackets(json.Lines[i].value, json.Lines[i].type);
+                let brCont = areYou.getContentInBrackets(json.Lines[i].value, json.Lines[i].type);
                 let brContProccessed = processBracketContentLoops(brCont, json.Lines[i].type);
                 brContProccessed.type = areYou.findType(brContProccessed.sequence);
                 json.Lines[i].loopOver = brContProccessed;
@@ -327,9 +350,9 @@ areYou.processInlineFunction = function (json) {
     //console.log('InlineFunctions: ' + console.log(JSON.stringify(json)));
     for (let i = 0; i < json.Lines.length; i++){
         if(json.Lines[i].type == 'inlineFunction'){
-            let funCont = getContentInBrackets(json.Lines[i].value);
-            let fun = getFunction(json.Lines[i].value);
-            console.log(fun);
+            let funCont = areYou.getContentInBrackets(json.Lines[i].value);
+            let fun = areYou.getFunction(json.Lines[i].value);
+            //console.log(fun);
             let funContProcessed = processBracketContentInFun(funCont);
             json.Lines[i].call = fun;
             json.Lines[i].content = funContProcessed;
@@ -344,12 +367,12 @@ areYou.processInlineFunction = function (json) {
     return json
 };
 
-//TODO Variables
 areYou.processVariables = function (json) {
+    let linesOfMultiVar = [];
     for (let i = 0; i < json.Lines.length;i++){
         if(json.Lines[i].type == 'variable'){
             let varCont = json.Lines[i].value;
-            if(varCont.indexOf('(') != -1 && varCont.indexOf(')') != -1) {
+            if(varCont.indexOf('(') != -1 && varCont.indexOf(')') != -1 || varCont.indexOf('(') == -1 && varCont.indexOf(')') == -1) {
                 let varContProcessed = processVarContent(varCont);
                 varContProcessed.type = areYou.findType(varContProcessed.value);
                 json.Lines[i].content = varContProcessed;
@@ -358,15 +381,23 @@ areYou.processVariables = function (json) {
                 let varContProcessed = processVarContent(preprocessVarCond.value);
                 varContProcessed.type = areYou.findType(varContProcessed.value);
                 json.Lines[i].content = varContProcessed;
-                //TODO filter dublicates between start(i) and end --> Next step
+                let start = i+1;
+                let end = preprocessVarCond.end;
+                linesOfMultiVar.push(start,end);
             }
         }
-        if(json.Lines[i].content != undefined && json.Lines[i].content.type == 'variable'){
+        }
+    //Filter out duplicates
+    if(linesOfMultiVar.length > 0){
+        json.Lines = json.Lines.filter(line => !linesOfMultiVar.includes(line.Line));
+        linesOfMultiVar = [];
+
+        /*if(json.Lines[i].content != undefined && json.Lines[i].content.type == 'variable'){
             let varCont = json.Lines[i].content.value;
             let varContProcessed = processVarContent(varCont);
             varContProcessed.type = areYou.findType(varContProcessed.value);
             json.Lines[i].content.content = varContProcessed;
-        }
+        }*/
     }
     return json;
 };
@@ -391,10 +422,10 @@ areYou.processVarCall = function (json) {
             let varCallCont = json.Lines[i].value;
             json.Lines[i].content = {'value':varCallCont};
         }
-        if(json.Lines[i].content != undefined && json.Lines[i].content.type == 'variable call'){
+       /* if(json.Lines[i].content != undefined && json.Lines[i].content.type == 'variable call'){
             let varCallCont = json.Lines[i].content.value;
             json.Lines[i].content.content = {'value':varCallCont};
-        }
+        }*/
     }
     return json;
 };
@@ -404,7 +435,7 @@ areYou.processLib = function (json) {
     for (let i = 0; i < json.Lines.length;i++) {
         if (json.Lines[i].type == 'library') {
             let libCont = json.Lines[i].value;
-            let calledLib = getContentInBrackets(libCont);
+            let calledLib = areYou.getContentInBrackets(libCont);
             json.Lines[i].content = calledLib;
         }
     }
@@ -415,7 +446,7 @@ areYou.processExFile = function (json) {
     for (let i = 0; i < json.Lines.length;i++) {
         if (json.Lines[i].type == 'exFile') {
             let file = json.Lines[i].value;
-            let LinkToFile = getContentInBrackets(file)[0];
+            let LinkToFile = areYou.getContentInBrackets(file)[0];
             json.Lines[i].content = LinkToFile;
         }
     }
@@ -428,10 +459,10 @@ areYou.processSequence = function (json) {
             let seq = json.Lines[i].value;
             json.Lines[i].content = seq;
         }
-        if(json.Lines[i].content != undefined && json.Lines[i].content.type == 'sequence'){
-            let seq = json.Lines[i].content.value;
-            json.Lines[i].content.content = seq;
-        }
+        // if(json.Lines[i].content != undefined && json.Lines[i].content.type == 'sequence'){
+        //     let seq = json.Lines[i].content.value;
+        //     json.Lines[i].content.content = seq;
+        // }
     }
     return json;
 };
@@ -448,13 +479,13 @@ const findFunctions = function (content) {
     }
 };
 
-getFunction = function (content) {
+areYou.getFunction = function (content) {
     let fun = content.substring(0,content.indexOf('('));
-    console.log(fun);
+    //console.log(fun);
     return fun;
 };
 
-getContentInBrackets = function (content) {
+areYou.getContentInBrackets = function (content) {
     let start = content.indexOf('(');
     let end = content.lastIndexOf(')');
     let innerContent = content.substring(start + 1, end);

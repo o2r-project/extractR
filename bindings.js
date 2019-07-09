@@ -5,9 +5,9 @@ const processJson = require('./processJson');
 let bindings = {};
 
 
-bindings.implementBinding = function (binding) {
+bindings.implementBinding = function (binding,plotFunctions) {
     console.log('Start to create binding');
-    let file = fn.readRmarkdown(binding);
+    let file = fn.readFile(binding);
     let lines = file.split('\n');
     //let lineInFile = fn.returnRequestedLine(file,line);
     //let plotFunction = fn.extractPlotFunction(lineInFile);
@@ -26,16 +26,20 @@ bindings.implementBinding = function (binding) {
     let json = fn.array2Json(comments);
     //console.log(json);
     let jsonObj = {'Lines': json};
+    console.log('OBJ: ' + JSON.stringify(jsonObj));
     let processedJson = processJson.addFileContentToJson(jsonObj);
+    //let plotFun = processJson.findPlotLines(jsonObj, plotFunctions);
     console.log(JSON.stringify(processedJson));
 };
 
-//bindings.implementBinding('./test/example_library.Rmd');
+bindings.implementBinding('./test/example_function.Rmd');
 //bindings.implementBinding('./test/example_if.Rmd');
 //bindings.implementBinding('./test/example_repeat_loop.Rmd');
 //bindings.implementBinding('./test/example_for_loop.Rmd');
-bindings.implementBinding('./test/example_inline_function.Rmd');
+//bindings.implementBinding('./test/example_inline_function.Rmd', './PlotFunctions');
+//bindings.implementBinding('./test/example_variable.Rmd');
 //bindings.implementBinding('./examples/Aquestiondrivenprocess/workspace/main.Rmd');
+//bindings.implementBinding('./examples/INSYDE a synthetic, probabilistic flood damage model based on/workspace/main.Rmd')
 
 
 
