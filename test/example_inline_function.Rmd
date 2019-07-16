@@ -21,11 +21,18 @@ You can also embed plots, for example:
 
 ```{r pressure, echo=FALSE}
 plot(pressure, test)
+ResHP <- shFun(Q, TP, SU, V1, P1, D1, M1, A1,
+               sigmaT, Kp, etaH, deltaB, deltaD, deltaI,
+               deltaE, muS, alpha, beta, Vmax, Dmin, Tp)
 ResSOP <- shFun(Q, TP, SU, V1, P1, D1, M1, A1,
                 sigmaT, 1, etaH, deltaB, deltaD, deltaI,
                 deltaE, muS, alpha, beta, Vmax, Dmin, Tp)
-#zcwvei
-
+ResSOP <- subset(ResSOP, Year > 0)
+ResHP <- subset(ResHP, Year > 0)
+g <- 10
+x <- raster(ResSOP)
+y <- plot(g)
+plot(x)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

@@ -183,16 +183,13 @@ processBracketContentLoops = function (brContent,type) {
         }
     }
 };
-//InlineFunctions --> TODO Reorder function arguments: Case1: functionArg = value, Case2: value --> Start Thursday
-// Do not push it in array and make it unnecessary complicated --> Keep it simple
-// content.args{1,2,3...}
 processBracketContentInFun = function (funContent) {
     let parts = [];
     for(let i = 0; i<funContent.length; i++){
-        console.log(funContent.length);
+        //console.log(funContent.length);
         let con = funContent[i].split(',');
         parts.push(con[0]);
-        console.log(parts);
+        //console.log(parts);
     }
     return{
         args:{'value':parts}
@@ -230,7 +227,7 @@ processMultiLineVarContent = function (jsonAtVarLine,startIndex) {
     for (let i = startIndex; i< jsonAtVarLine.Lines.length; i++){
         if(closingBracket.test(jsonAtVarLine.Lines[i].value) == true && firstOcc == true){
             firstOcc = false;
-            end = jsonAtVarLine.Lines[i].Line;
+            end = i;
             for(let j = startIndex; j <= end; j++){
                 value+=jsonAtVarLine.Lines[j].value;
                 value = value.replace(/ /g, '');
@@ -258,28 +255,43 @@ areYou.processFunction = function (json) {
     let startEnd = [];
     for (let i = 0; i < json.Lines.length;i++){
         if(json.Lines[i].type == 'function'){
+            let varCont = json.Lines[i].value
+            if(varCont.indexOf('(') != -1 && varCont.indexOf(')') != -1 || varCont.indexOf('(') == -1 && varCont.indexOf(')') == -1) {
             let end =  searchEnd(json,json.Lines[i].codeBlock, json.Lines[i].Line);
             let start = i;
             let vars = areYou.getContentInBrackets(json.Lines[i].value);
-            console.log('VARS ' + vars);
             json.Lines[i].content = {'vars': vars};
             startEnd.push(start,end);
+            } else {
+                let preprocessMultiLineArgFun = processMultiLineVarContent(json,i);
+                //console.log('preprocessMultiLineArgFun ' + JSON.stringify(preprocessMultiLineArgFun))
+                let start = i
+                //console.log('Start ' + start)
+                let endOfFunArgs = preprocessMultiLineArgFun.end
+                let end =  searchEnd(json,json.Lines[i].codeBlock, json.Lines[endOfFunArgs].Line);
+                //console.log('END ' + end)
+                let vars = areYou.getContentInBrackets(preprocessMultiLineArgFun.value);
+                json.Lines[i].content = {'vars': vars};
+                let max = 2;
+                if(startEnd.length < max){
+                    startEnd.push(start,end);
+                    //console.log('startEnd ' + startEnd);
+                }
+            }
         }
     }
-    console.log('SE ' + startEnd[0]);
-    //TODO
-    // https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Array/slice
-    let jsonNew = json.Lines.filter(line => );
-    console.log('JSON ' + JSON.stringify(jsonNew));
+    if(startEnd.length > 1){
+        let jsonNew = json.Lines.filter(line => line.Line <= startEnd[0] || line.Line > startEnd[1]);
+        json.Lines = jsonNew
+    }
     return json;
 };
-//TODO Loops
 areYou.processLoop = function (json) {
     for (let i = 0; i < json.Lines.length; i++){
         if(json.Lines[i].type == 'forLoop' || json.Lines[i].type == 'whileLoop' || json.Lines[i].type == 'repeatLoop' ){
             let end =  searchEnd(json,json.Lines[i].codeBlock, json.Lines[i].Line);
-            let start = i;
-            addLoopContent(json,start,end);
+            let start = json.Lines[i].Line;
+            addLoopContent(json,i,start,end);
             if(json.Lines[i].type != 'repeatLoop') {
                 let brCont = areYou.getContentInBrackets(json.Lines[i].value, json.Lines[i].type);
                 let brContProccessed = processBracketContentLoops(brCont, json.Lines[i].type);
@@ -293,20 +305,27 @@ areYou.processLoop = function (json) {
 
 };
 
-addLoopContent = function (json,startOfLoopIndex,endOfLoopIndex) {
+addLoopContent = function (json,startOfLoopIndex,startOfLoopLine,endOfLoopIndex) {
     let numOfItems = 0;
     json.Lines[startOfLoopIndex].content = [];
-    for(let i = startOfLoopIndex+1; i <= endOfLoopIndex;i++){
+    let lengthOfLoop = endOfLoopIndex - startOfLoopLine
+    let endAt = startOfLoopIndex + lengthOfLoop;
+    endOfJsonLoop = json.Lines.findIndex(item => {
+        return item.Line == endAt
+    })
+    
+    for(let i = startOfLoopIndex+1; i <= endOfJsonLoop; i++){
         let line = i;
-        let value = json.Lines[i].value;
+        let value = json.Lines[line].value;
         let type = areYou.findType(value);
         json.Lines[startOfLoopIndex].content[numOfItems] = {line,value,type};
         numOfItems++;
+        //console.log(JSON.stringify(json.Lines));
     }
     return json;
 };
 
-
+//TODO: Closing bracket is not recignized if inside for/while loop
 searchEnd = function (json,blockIndex, lineIndex) {
     lineIndex = json.Lines.findIndex(a => a.Line == lineIndex);
     let openCount = 0;
@@ -316,14 +335,25 @@ searchEnd = function (json,blockIndex, lineIndex) {
     for (let i = lineIndex; i < json.Lines.length;i++){
         if(opening.test(json.Lines[i].value)){
             openCount+= json.Lines[i].value.match(opening).length;
-        } else if(closing.test(json.Lines[i].value)){
+            console.log(openCount)   
+        } 
+        if(closing.test(json.Lines[i].value)){
             closedCount+= json.Lines[i].value.match(closing).length;
             openCount -= json.Lines[i].value.match(closing).length;
+            console.log(closedCount)
+            console.log(openCount)        
+        }  
+        console.log('i' + i);
+        console.log(json.Lines.length);
+        if (openCount == closedCount & openCount != 0 & i == json.Lines.length-1){
+            //TODO Write function that checks for loops inside of cond && vice versa
+            console.log('Im finshed');
+
         }
-        if ((openCount == 0) && i != lineIndex){
-            return json.Lines[i].Line;
-        }
-    }
+            if ((openCount == 0) && i != lineIndex){
+                return json.Lines[i].Line;
+            }
+    } 
 };
 
 deleteDups = function (json) {
@@ -406,9 +436,11 @@ areYou.processVariables = function (json) {
 areYou.processCond = function (json) {
     for (let i = 0; i < json.Lines.length;i++) {
         if (json.Lines[i].type == 'conditional') {
-            let end =  searchEnd(json,json.Lines[i].codeBlock, json.Lines[i].Line);
-            let start = i;
-            addLoopContent(json,start,end);
+            let endLine =  searchEnd(json,json.Lines[i].codeBlock, json.Lines[i].Line);
+            let startLine = json.Lines[i].Line;
+            console.log('Start '  + startLine)
+            console.log('End  ' + endLine)
+            addLoopContent(json,i,startLine,endLine);
         }
     }
     let processedCond = deleteDups(json);

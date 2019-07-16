@@ -26,14 +26,13 @@ bindings.implementBinding = function (binding,plotFunctions) {
     let json = fn.array2Json(comments);
     //console.log(json);
     let jsonObj = {'Lines': json};
-    console.log('OBJ: ' + JSON.stringify(jsonObj));
     let processedJson = processJson.addFileContentToJson(jsonObj);
     //let plotFun = processJson.findPlotLines(jsonObj, plotFunctions);
-    console.log(JSON.stringify(processedJson));
+    //console.log('TADAAA ' + JSON.stringify(processedJson));
 };
 
-bindings.implementBinding('./test/example_function.Rmd');
-//bindings.implementBinding('./test/example_if.Rmd');
+//bindings.implementBinding('./test/example_function.Rmd');
+bindings.implementBinding('./test/example_if.Rmd');
 //bindings.implementBinding('./test/example_repeat_loop.Rmd');
 //bindings.implementBinding('./test/example_for_loop.Rmd');
 //bindings.implementBinding('./test/example_inline_function.Rmd', './PlotFunctions');

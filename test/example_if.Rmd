@@ -1,37 +1,58 @@
 ---
-title: "test"
-author: "Philipp Glahe"
-date: "14 Mai 2019"
+title: "INSYDE: a synthetic, probabilistic flood damage model based on explicit cost analysis"
+author: 
+- affiliation:  "European Commission, Joint Research Centre, Ispra, Italy"
+  name: "Francesco Dottori"
+- affiliation:  "Scuola Universitaria Superiore IUSS Pavia, Pavia, Italy"
+  name: "Rui Figueiredo"
+- affiliation:  "Scuola Universitaria Superiore IUSS Pavia, Pavia, Italy"
+  name: "Mario L. V. Martina"
+- affiliation:  "Dipartimento di Ingegneria Civile e Ambientale, Politecnico di Milano, Milano, Italy"
+  name: "Daniela Molinari"
+- affiliation:  "Dipartimento di Ingegneria Civile, Edile-Architettura e Ambientale, Università degli Studi dell'Aquila, L'Aquila, Italy"
+  name: "Anna Rita Scorzini"
+licenses:
+  code: CC-BY-3.0
+  data: CC-BY-3.0
+  text: CC-BY-3.0
+date: "02 Dec 2016"
 output: html_document
+doi: 10.5194/nhess-16-2577-2016
+abstract: "Methodologies to estimate economic flood damages are increasingly important for flood risk assessment and management. In this work, we present a new synthetic flood damage model based on a component-by-component analysis of physical damage to buildings. The damage functions are designed using an expert-based approach with the support of existing scientific and technical literature, loss adjustment studies, and damage surveys carried out for past flood events in Italy. The model structure is designed to be transparent and flexible, and therefore it can be applied in different geographical contexts and adapted to the actual knowledge of hazard and vulnerability variables. &nbsp;The model has been tested in a recent flood event in northern Italy. Validation results provided good estimates of post-event damages, with similar or superior performances when compared with other damage models available in the literature. In addition, a local sensitivity analysis was performed in order to identify the hazard variables that have more influence on damage assessment results." 
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo)
+
+```{r clam_setup, echo=FALSE,  results="hide", message=FALSE , warning=FALSE, comment=FALSE, warning=FALSE}
+
+# Define whether or not to consider uncertainty
+uncert <- 0
+
+if (!uncert) {
+  # Compute expected damage. Note that (only) one of the hazard variables can 
+  # be passed to the function as a vector.
+  modelOutput <- ComputeDamage(he, v, d, s, q, 
+                  FA, IA, BA, EP, IH, BH, GL, NF, BT, BS, PD, PT, FL, YY, LM, 
+                  repVal, up, uncert)
+} 
+
+else if (uncert) {
+  # Probabilistic computation. All the hazard variables must be passed to the
+  # function as scalars.
+  # This example assumes that the variable he is a vector. It is therefore
+  # necessary to iterate over its elements and pass them to the function one
+  # at a time.
+  nrSim <- 2000
+  statMat <- matrix(NA, nrow = length(he), ncol = 4)
+  for (i in 1:length(he)) {
+    modelOutput <- ComputeDamage(he[i], v, d, s, q, 
+                    FA, IA, BA, EP, IH, BH, GL, NF, BT, BS, PD, PT, FL, YY, LM,
+                    repVal, up, uncert, nrSim)
+    # For each element of he, calculate some summary statistics and save them
+    # to a matrix.
+    statMat[i, 1] <- quantile(modelOutput$absDamage, .05)
+    statMat[i, 2] <- mean(modelOutput$absDamage)
+    statMat[i, 3] <- quantile(modelOutput$absDamage, .95)
+    statMat[i, 4] <- mean(modelOutput$relDamage)
+  }
+   }
 ```
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-x <- 5
-if(x > 0){
-    if(a<7){
-print("Positive number")
-}
-}
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
-
-
-x <- 5
-if(x > 0){
-print("Positive number")
-}

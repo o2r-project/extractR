@@ -15,7 +15,7 @@ pJ.addFileContentToJson = function (jsonObj) {
     let exFile = rules.processExFile(lib);
     let seq = rules.processSequence(exFile);
     let contJson = seq;
-    pJ.ProcessNestedCont(contJson);
+    //pJ.ProcessNestedCont(contJson);
     return contJson;
 };
 
@@ -102,10 +102,10 @@ processJsonTypeLoopsAndConds = function (jsonObj, type) {
 pJ.ProcessNestedCont = function (jsonObj) {
     //console.log(allKeys(jsonObj));
     //console.log(JSON.stringify(jsonObj));
-    let loopTypes = ['forLoop','whileLoop','repeatLoop','conditional','function'];
+    let loopsAndFun = ['forLoop','whileLoop','repeatLoop','conditional','function','inlineFunction'];
 
     for (let i = 0; i<jsonObj.Lines.length;i++){
-        if(!loopTypes.includes(jsonObj.Lines[i].type)) {
+        if(!loopsAndFun.includes(jsonObj.Lines[i].type)) {
             if (jsonObj.Lines[i].content.value != undefined) {
                 processJsonTypeWithoutLoopsAndConds(jsonObj, jsonObj.Lines[i].content.type);
             }
@@ -116,7 +116,7 @@ pJ.ProcessNestedCont = function (jsonObj) {
                 processJsonTypesFromInlineFunction(jsonObj.Lines[i])
             }
         }
-        if(loopTypes.includes(jsonObj.Lines[i].type)){
+        if(loopsAndFun.includes(jsonObj.Lines[i].type)){
             //get variables of loops
 
         }

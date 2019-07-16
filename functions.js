@@ -73,17 +73,22 @@ fn.extractCode = function(file,start,end){
  */
 fn.splitCodeIntoLines = function (code) {
     let codeLines = [];
-    let commentOnly = /^#.*$/g;
+    let commentOnly = /^\s*#.*/;
     let counter = 0;
 
     for (let i = 0;i<code.length;i++) {
         for (let j = 0;j<code[i].length; j++) {
-            if (code[i][j] != '' && commentOnly.test(code[i][j]) === false) {
-                codeLines.push({"value":code[i][j],"codeBlock": i, "Line": counter});
+            if (code[i][j].length > 0){
+                let noComment = commentOnly.test(code[i][j])
+                if(noComment == false){ 
+                    let value = code[i][j]
+                    codeLines.push({"value":value,"codeBlock": i, "Line": counter});
+                    counter++;
+                }
             }
-            counter++;
         }
     }
+    //console.log('CL ' + JSON.stringify(codeLines))
     return codeLines;
 };
 
@@ -119,7 +124,6 @@ fn.deleteComments = function (code) {
 fn.array2Json = function (array) {
   let jsonString = JSON.stringify(array);
   let jsonObject = JSON.parse(jsonString);
-
   return jsonObject;
 };
 
