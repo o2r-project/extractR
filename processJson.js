@@ -124,6 +124,13 @@ pJ.ProcessNestedCont = function (jsonObj) {
     return jsonObj;
 };
 
+pJ.getCodeLines = function(processedJson){
+    let lines = []
+    lines.push({"start":30,"end":424})
+    return lines
+};
+
+
 allKeys = function(object) {
     return Object.keys(object).reduce((keys, key) =>
             keys.concat(key,

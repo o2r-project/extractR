@@ -1,13 +1,45 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const debug = require('debug')('extractR');
+const path = require('path');
 const fn = require('./functions');
 const rules = require('./rules');
 const processJson = require('./processJson');
 
-let bindings = {};
 
+let extractR = {};
 
-bindings.implementBinding = function (binding,plotFunctions) {
+extractR.start = (conf) => {
+    return new Promise((resolve, reject) => {
+        const app = express();
+              app.use(bodyParser.json());
+              app.use(bodyParser.urlencoded({extended: true}));
+        
+        debug('Start service to create bindings');
+
+        //Create post for plot functions, response as binding.plotFunctions as array
+        
+        app.post('/api/v1/bindings/extractR', function(req, res) {
+            extractR.implementExtractR(req.body, res);
+        });
+    
+        let extractRListen = app.listen(conf.port, () => {
+            debug('Bindings server listening on port %s', conf.port);
+            console.log('Server running on ' + conf.port)
+            resolve(extractRListen);
+        });
+    });
+};
+
+//Remember plot functions
+extractR.implementExtractR = function (binding,response) {
     console.log('Start to create binding');
-    let file = fn.readFile(binding);
+    console.log(binding);
+    //let file = fn.readFile('test',binding);
+    let file = fn.readRmarkdown(binding.id, binding.sourcecode.file);
+
+    //let file = fn.readFile(binding.id, binding.sourcecode.file);
+    
     let lines = file.split('\n');
     //let lineInFile = fn.returnRequestedLine(file,line);
     //let plotFunction = fn.extractPlotFunction(lineInFile);
@@ -27,21 +59,31 @@ bindings.implementBinding = function (binding,plotFunctions) {
     //console.log(json);
     let jsonObj = {'Lines': json};
     let processedJson = processJson.addFileContentToJson(jsonObj);
+
+    
+    //Mock response 
+    // Codelines = {"start":30,"end":424} 
+    binding.sourcecode.codelines = processJson.getCodeLines(processedJson);
+    console.log(binding.sourcecode.codelines)
+    response.send({
+        callback: 'ok',
+        data: binding});
+        
     //let plotFun = processJson.findPlotLines(jsonObj, plotFunctions);
     //console.log('TADAAA ' + JSON.stringify(processedJson));
 };
 
-//bindings.implementBinding('./test/example_function.Rmd');
-bindings.implementBinding('./test/example_if.Rmd');
-//bindings.implementBinding('./test/example_repeat_loop.Rmd');
-//bindings.implementBinding('./test/example_for_loop.Rmd');
-//bindings.implementBinding('./test/example_inline_function.Rmd', './PlotFunctions');
-//bindings.implementBinding('./test/example_variable.Rmd');
-//bindings.implementBinding('./examples/Aquestiondrivenprocess/workspace/main.Rmd');
-//bindings.implementBinding('./examples/INSYDE a synthetic, probabilistic flood damage model based on/workspace/main.Rmd')
+//extractR.implementBinding('./test/example_function.Rmd');
+//extractR.implementBinding('./test/example_if.Rmd');
+//extractR.implementBinding('./test/example_repeat_loop.Rmd');
+//extractR.implementBinding('./test/example_for_loop.Rmd');
+//extractR.implementBinding('./test/example_inline_function.Rmd', './PlotFunctions');
+//extractR.implementBinding('./test/example_variable.Rmd');
+//extractR.implementBinding('./examples/Aquestiondrivenprocess/workspace/main.Rmd');
+//extractR.implementBinding('./examples/INSYDE a synthetic, probabilistic flood damage model based on/workspace/main.Rmd')
 
 
-
+module.exports = extractR;
 
 
 

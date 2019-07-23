@@ -335,18 +335,19 @@ searchEnd = function (json,blockIndex, lineIndex) {
     for (let i = lineIndex; i < json.Lines.length;i++){
         if(opening.test(json.Lines[i].value)){
             openCount+= json.Lines[i].value.match(opening).length;
-            console.log(openCount)   
+            //console.log(openCount)   
         } 
         if(closing.test(json.Lines[i].value)){
             closedCount+= json.Lines[i].value.match(closing).length;
             openCount -= json.Lines[i].value.match(closing).length;
-            console.log(closedCount)
-            console.log(openCount)        
+            //console.log(closedCount)
+            //console.log(openCount)        
         }  
-        console.log('i' + i);
-        console.log(json.Lines.length);
+        //console.log('i' + i);
+        //console.log(json.Lines.length);
         if (openCount == closedCount & openCount != 0 & i == json.Lines.length-1){
             //TODO Write function that checks for loops inside of cond && vice versa
+            let loopsAndConds = findLoopsAndConds(json.Lines);
             console.log('Im finshed');
 
         }
@@ -355,6 +356,43 @@ searchEnd = function (json,blockIndex, lineIndex) {
             }
     } 
 };
+
+findLoopsAndConds = function(json){
+    let forLoopInCond = findNested(json,'conditional','forLoop')
+    let CondInForLoop = findNested(json,'forLoop','conditional')
+    console.log(forLoopInCond);
+    console.log(CondInForLoop);
+}
+
+findNested = function(json,outerType,innerType){
+    let openingBracketsFound = 0;
+    let closingBracketsFound = 0;
+    let opening = /{/g;
+    let closing = /}/g;
+
+    console.log(json);
+
+    for (let i = 0; i < json.length;i++){
+        if(json[i].type == outerType){
+            json[i].content.forEach(element => {
+                console.log('ELEM ' + element);
+                if(element.type == innerType){
+                    element.content.forEach(value => {
+                        if(opening.test(value)){
+                            openingBracketsFound+= value.value.match(opening).length;
+                        } else if (closing.test(value)){
+                            closingBracketsFound+= value.value.match(closing).length;
+                        }
+                    });
+                }
+            });
+        }
+    }
+    return {
+        closingBracketsFound:closingBracketsFound,
+        openingBracketsFound:openingBracketsFound
+    }
+}
 
 deleteDups = function (json) {
     let lineOfLoopContent = [];

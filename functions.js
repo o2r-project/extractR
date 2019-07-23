@@ -1,16 +1,33 @@
 const fs = require('fs');
 const path = require('path');
 const exec = require('child_process').exec;
+const debug = require('debug')('extractR');
 const rules = require('./rules');
 
 let fn = {};
 
-fn.readFile = function (file) {
-    if (!file){
+fn.readRmarkdown = function(compendiumId, mainfile) {
+    debug('Start reading RMarkdown %s from compendium %s', mainfile, compendiumId);
+    if ( !compendiumId | !mainfile ) {
+        throw new Error('File does not exist.');
+    }
+    let paper = path.join('tmp', 'o2r', 'compendium', compendiumId, mainfile);
+    fs.exists(paper, function(ex) {
+        if (!ex) {
+            debug('Cannot open file %s', paper);
+            throw new Error('File does not exist.');
+        }
+    });
+    debug('End reading RMarkdown');
+    return fs.readFileSync(paper, 'utf8');
+};
+
+fn.readFile = function (compendiumId,mainFile) {
+    if (!mainFile){
         throw new Error('File does not exist.');
     }
 
-    let paper = file;
+    let paper = mainFile;
 
     fs.exists(paper, (ex) => {
         if(!ex) {
