@@ -35,8 +35,12 @@ extractR.start = (conf) => {
 extractR.implementExtractR = function (binding,response) {
     console.log('Start to create binding');
     console.log(binding);
-    //let file = fn.readFile('test',binding);
-    let file = fn.readRmarkdown(binding.id, binding.sourcecode.file);
+
+    //Used for testing
+    let file = fn.readFile('test',binding);
+
+    //Comment in if used with Service
+    //let file = fn.readRmarkdown(binding.id, binding.sourcecode.file);
 
     //let file = fn.readFile(binding.id, binding.sourcecode.file);
     
@@ -61,7 +65,7 @@ extractR.implementExtractR = function (binding,response) {
     let processedJson = processJson.addFileContentToJson(jsonObj);
 
     
-    //Mock response 
+    //Mock response TODO --> REPLACE CODED LINES
     // Codelines = {"start":30,"end":424} 
     binding.sourcecode.codelines = processJson.getCodeLines(processedJson);
     console.log(binding.sourcecode.codelines)
@@ -74,7 +78,7 @@ extractR.implementExtractR = function (binding,response) {
 };
 
 //extractR.implementBinding('./test/example_function.Rmd');
-//extractR.implementBinding('./test/example_if.Rmd');
+extractR.implementExtractR('./test/example_if.Rmd');
 //extractR.implementBinding('./test/example_repeat_loop.Rmd');
 //extractR.implementBinding('./test/example_for_loop.Rmd');
 //extractR.implementBinding('./test/example_inline_function.Rmd', './PlotFunctions');

@@ -1,6 +1,6 @@
 const config = require('./config/config');
-let bindings = require('./bindings');
+let extractR = require('./extractR');
 
-bindings.start({
+extractR.start({
   port: config.net.port
 });
