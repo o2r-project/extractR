@@ -55,4 +55,10 @@ else if (uncert) {
     statMat[i, 4] <- mean(modelOutput$relDamage)
   }
    }
+   # Dehumidification (?/m3)
+  C4 <- up["dehumidification",] * dr1 * (               # unit price; duration damage ratio
+          IA * IH * pmin(nf, ceiling(h/IH)) * (he>0) +  # volume in storeys above ground
+          BA * BH                                       # basement volume
+          ) * (1 - 0.2*(BT==3))                         # economies of scale
+
 ```

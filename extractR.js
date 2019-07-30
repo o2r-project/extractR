@@ -58,21 +58,23 @@ extractR.implementExtractR = function (binding,response) {
     let codeparts = fn.splitCodeIntoLines(code);
    // console.log(codeparts);
     let type = rules.getTypeOfLine(codeparts);
-    let comments = fn.deleteComments(type);
-    let json = fn.array2Json(comments);
+    //let comments = fn.deleteComments(type);
+    let json = fn.array2Json(type);
     //console.log(json);
     let jsonObj = {'Lines': json};
     let processedJson = processJson.addFileContentToJson(jsonObj);
+    //console.log('PROCESSED ' + JSON.stringify(processedJson));
 
     
     //Mock response TODO --> REPLACE CODED LINES
     // Codelines = {"start":30,"end":424} 
+    /** 
     binding.sourcecode.codelines = processJson.getCodeLines(processedJson);
     console.log(binding.sourcecode.codelines)
     response.send({
         callback: 'ok',
         data: binding});
-        
+    */    
     //let plotFun = processJson.findPlotLines(jsonObj, plotFunctions);
     //console.log('TADAAA ' + JSON.stringify(processedJson));
 };
@@ -84,7 +86,7 @@ extractR.implementExtractR('./test/example_if.Rmd');
 //extractR.implementBinding('./test/example_inline_function.Rmd', './PlotFunctions');
 //extractR.implementBinding('./test/example_variable.Rmd');
 //extractR.implementBinding('./examples/Aquestiondrivenprocess/workspace/main.Rmd');
-//extractR.implementBinding('./examples/INSYDE a synthetic, probabilistic flood damage model based on/workspace/main.Rmd')
+//extractR.implementExtractR('./tmp/INSYDE a synthetic, probabilistic flood damage model based on/workspace/main.Rmd')
 
 
 module.exports = extractR;

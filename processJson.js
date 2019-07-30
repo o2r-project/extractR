@@ -4,19 +4,66 @@ const fn = require('./functions');
 
 let pJ = {};
 
+//TODO change proceesedJson var in for loop
 pJ.addFileContentToJson = function (jsonObj) {
-    let fun = rules.processFunction(jsonObj);
-    let loop = rules.processLoop(fun);
-    let inlineFunc = rules.processInlineFunction(loop);
-    let variable = rules.processVariables(inlineFunc);
-    let cond = rules.processCond(variable);
-    let varCall = rules.processVarCall(cond);
-    let lib = rules.processLib(varCall);
-    let exFile = rules.processExFile(lib);
-    let seq = rules.processSequence(exFile);
-    let contJson = seq;
+    let processedJson = [];
+    let numberOfLoopRuns = 0;
+    console.log('LENGTH ' + JSON.stringify(jsonObj.Lines[19]));
+    for (let i = 0; i < jsonObj.Lines.length;i++){
+        console.log('IIIII ' + i);
+       // let notProcessed = processedJson.slice(i);
+        if(jsonObj.Lines[i].type == 'function'){
+            let fun = rules.processFunction(jsonObj.Lines,i);
+            processedJson.push(fun[numberOfLoopRuns]);
+        }
+        else if(jsonObj.Lines[i].type == 'conditional'){    
+            let cond = rules.processCond(jsonObj.Lines,i);
+            processedJson.push(cond.processedCond[numberOfLoopRuns]);
+            i = cond.end 
+            //console.log('LOOPSPRO ' + JSON.stringify(processedJson));
+        }
+        else if(jsonObj.Lines[i].type == 'forLoop' || jsonObj.Lines[i].type == 'whileLoop' || jsonObj.Lines[i].type == 'repeatLoop'){    
+            let loop = rules.processLoop(jsonObj.Lines,i);
+            processedJson.push(loop.processedLoop[numberOfLoopRuns]);
+            i = loop.end 
+        }
+        else if(jsonObj.Lines[i].type == 'inlineFunction'){
+            //console.log('NOTPRO ' + JSON.stringify(notProcessed));    
+            let inline = rules.processInlineFunction(jsonObj.Lines,i);
+            processedJson.push(inline[numberOfLoopRuns]);
+        }
+        else if(jsonObj.Lines[i].type == 'variable'){
+            console.log('var found');
+            let variable = rules.processVariables(jsonObj.Lines,i,false);
+            if (variable.multi == false){
+                processedJson.push(variable.json[numberOfLoopRuns]);
+            } else {
+                processedJson.push(variable.json[numberOfLoopRuns]);
+                i = variable.end 
+            }
+        }
+        else if(jsonObj.Lines[i].type == 'variable call'){    
+            let varCall = rules.processVarCall(jsonObj.Lines,i);
+            processedJson.push(varCall[numberOfLoopRuns]);
+        }
+        else if(jsonObj.Lines[i].type == 'library'){    
+            let lib = rules.processLib(jsonObj.Lines,i);
+            processedJson.push(lib[numberOfLoopRuns]);
+        }
+        else if(jsonObj.Lines[i].type == 'exFile'){    
+            let exFile = rules.processExFile(jsonObj.Lines,i);
+            processedJson.push(exFile[numberOfLoopRuns]);
+        }
+        else if(jsonObj.Lines[i].type == 'sequence'){    
+            let seq = rules.processSequence(jsonObj.Lines,i);
+            processedJson.push(exFile[numberOfLoopRuns]);
+        }
+        console.log('NR ' + numberOfLoopRuns);
+        numberOfLoopRuns++;
     //pJ.ProcessNestedCont(contJson);
-    return contJson;
+    }
+    //console.log('ProcessedJson ' + JSON.stringify(processedJson))
+    return processedJson;
 };
 
 //TODO: Add lines to find all plot functions in script
