@@ -8,61 +8,83 @@ let pJ = {};
 pJ.addFileContentToJson = function (jsonObj) {
     let processedJson = [];
     let numberOfLoopRuns = 0;
-    console.log('LENGTH ' + JSON.stringify(jsonObj.Lines[19]));
+    //console.log('LENGTH ' + JSON.stringify(jsonObj.Lines[19]));
     for (let i = 0; i < jsonObj.Lines.length;i++){
         console.log('IIIII ' + i);
+        //console.log(JSON.stringify(jsonObj.Lines[i]));
        // let notProcessed = processedJson.slice(i);
         if(jsonObj.Lines[i].type == 'function'){
+            console.log('function');
             let fun = rules.processFunction(jsonObj.Lines,i);
-            processedJson.push(fun[numberOfLoopRuns]);
+            console.log(fun);
+            processedJson.push(fun.json);
+            //console.log('ProcessedJson ' + JSON.stringify(processedJson))
+            console.log('FN ' + fun.end);
+            i = fun.end;
         }
         else if(jsonObj.Lines[i].type == 'conditional'){    
+            console.log('cond');
             let cond = rules.processCond(jsonObj.Lines,i);
-            processedJson.push(cond.processedCond[numberOfLoopRuns]);
+            processedJson.push(cond.json);
+            console.log('ProcessedJsonInCond ' + JSON.stringify(processedJson))
             i = cond.end 
             //console.log('LOOPSPRO ' + JSON.stringify(processedJson));
         }
         else if(jsonObj.Lines[i].type == 'forLoop' || jsonObj.Lines[i].type == 'whileLoop' || jsonObj.Lines[i].type == 'repeatLoop'){    
+            console.log('loop');
             let loop = rules.processLoop(jsonObj.Lines,i);
-            processedJson.push(loop.processedLoop[numberOfLoopRuns]);
+            processedJson.push(loop.json);
+            //console.log('ProcessedJson ' + JSON.stringify(processedJson))
             i = loop.end 
         }
         else if(jsonObj.Lines[i].type == 'inlineFunction'){
+            console.log('ILFunction');
             //console.log('NOTPRO ' + JSON.stringify(notProcessed));    
             let inline = rules.processInlineFunction(jsonObj.Lines,i);
-            processedJson.push(inline[numberOfLoopRuns]);
+            //console.log('ProcessedJson ' + JSON.stringify(processedJson))
+            processedJson.push(inline);
         }
         else if(jsonObj.Lines[i].type == 'variable'){
-            console.log('var found');
+            console.log('var');
             let variable = rules.processVariables(jsonObj.Lines,i,false);
             if (variable.multi == false){
-                processedJson.push(variable.json[numberOfLoopRuns]);
+                processedJson.push(variable.json);
+                //console.log('ProcessedJson ' + JSON.stringify(processedJson))
             } else {
-                processedJson.push(variable.json[numberOfLoopRuns]);
+                processedJson.push(variable.json);
+                //console.log('ProcessedJson ' + JSON.stringify(processedJson))
                 i = variable.end 
             }
         }
         else if(jsonObj.Lines[i].type == 'variable call'){    
             let varCall = rules.processVarCall(jsonObj.Lines,i);
-            processedJson.push(varCall[numberOfLoopRuns]);
+            console.log('VC ' + JSON.stringify(varCall));
+            processedJson.push(varCall);
+            //console.log('ProcessedJson ' + JSON.stringify(processedJson))
         }
         else if(jsonObj.Lines[i].type == 'library'){    
+            console.log('lib');
             let lib = rules.processLib(jsonObj.Lines,i);
-            processedJson.push(lib[numberOfLoopRuns]);
+            processedJson.push(lib);
+            //console.log('ProcessedJson ' + JSON.stringify(processedJson))
         }
-        else if(jsonObj.Lines[i].type == 'exFile'){    
+        else if(jsonObj.Lines[i].type == 'exFile'){  
+            console.log('exFile');  
             let exFile = rules.processExFile(jsonObj.Lines,i);
-            processedJson.push(exFile[numberOfLoopRuns]);
+            processedJson.push(exFile);
+            //console.log('ProcessedJson ' + JSON.stringify(processedJson))
         }
-        else if(jsonObj.Lines[i].type == 'sequence'){    
+        else if(jsonObj.Lines[i].type == 'sequence'){ 
+            console.log('seq');   
             let seq = rules.processSequence(jsonObj.Lines,i);
-            processedJson.push(exFile[numberOfLoopRuns]);
+            processedJson.push(seq);
+            //console.log('ProcessedJson ' + JSON.stringify(processedJson))
         }
         console.log('NR ' + numberOfLoopRuns);
         numberOfLoopRuns++;
     //pJ.ProcessNestedCont(contJson);
     }
-    //console.log('ProcessedJson ' + JSON.stringify(processedJson))
+    console.log('ProcessedJson ' + (JSON.stringify(processedJson)))
     return processedJson;
 };
 
@@ -97,7 +119,7 @@ processJsonTypesFromVariables = function(jsonObj){
     let type = jsonObj.content.type;
     let value = jsonObj.content.value;
     let variables = rules.getContentInBrackets(value);
-    console.log('VARS ' + variables);
+    //console.log('VARS ' + variables);
 
 };
 
@@ -159,7 +181,6 @@ pJ.ProcessNestedCont = function (jsonObj) {
         }
         if(jsonObj.Lines[i].type == 'inlineFunction'){
             if(jsonObj.Lines[i].content.args.value instanceof Object){
-                //console.log('OBJECT: ' + jsonObj.Lines[i].content.args.value);
                 processJsonTypesFromInlineFunction(jsonObj.Lines[i])
             }
         }

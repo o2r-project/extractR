@@ -79,13 +79,8 @@ extractR.implementExtractR = function (binding,response) {
     //console.log('TADAAA ' + JSON.stringify(processedJson));
 };
 
-//extractR.implementBinding('./test/example_function.Rmd');
 extractR.implementExtractR('./test/example_if.Rmd');
-//extractR.implementBinding('./test/example_repeat_loop.Rmd');
-//extractR.implementBinding('./test/example_for_loop.Rmd');
-//extractR.implementBinding('./test/example_inline_function.Rmd', './PlotFunctions');
-//extractR.implementBinding('./test/example_variable.Rmd');
-//extractR.implementBinding('./examples/Aquestiondrivenprocess/workspace/main.Rmd');
+//extractR.implementExtractR('./examples/Aquestiondrivenprocess/workspace/main.Rmd');
 //extractR.implementExtractR('./tmp/INSYDE a synthetic, probabilistic flood damage model based on/workspace/main.Rmd')
 
 

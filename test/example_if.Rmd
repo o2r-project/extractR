@@ -24,9 +24,6 @@ abstract: "Methodologies to estimate economic flood damages are increasingly imp
 
 ```{r clam_setup, echo=FALSE,  results="hide", message=FALSE , warning=FALSE, comment=FALSE, warning=FALSE}
 
-# Define whether or not to consider uncertainty
-uncert <- 0
-
 if (!uncert) {
   # Compute expected damage. Note that (only) one of the hazard variables can 
   # be passed to the function as a vector.
@@ -34,7 +31,6 @@ if (!uncert) {
                   FA, IA, BA, EP, IH, BH, GL, NF, BT, BS, PD, PT, FL, YY, LM, 
                   repVal, up, uncert)
 } 
-
 else if (uncert) {
   # Probabilistic computation. All the hazard variables must be passed to the
   # function as scalars.
@@ -54,11 +50,6 @@ else if (uncert) {
     statMat[i, 3] <- quantile(modelOutput$absDamage, .95)
     statMat[i, 4] <- mean(modelOutput$relDamage)
   }
-   }
-   # Dehumidification (?/m3)
-  C4 <- up["dehumidification",] * dr1 * (               # unit price; duration damage ratio
-          IA * IH * pmin(nf, ceiling(h/IH)) * (he>0) +  # volume in storeys above ground
-          BA * BH                                       # basement volume
-          ) * (1 - 0.2*(BT==3))                         # economies of scale
+}
 
 ```
