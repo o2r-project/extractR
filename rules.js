@@ -7,8 +7,8 @@ let areYou = {};
 //TODO
 const variable = function (content) {
     //Test for variable of form v = x or v <- x
-    const isVariable1 = /^\s*\b(?![(])[\w\[\]]*\s?=\s?[\w\[\]]+/;
-    const isVariable2 = /^\s*\b(?![(])[\w\[\]]*\s?<-\s?[\w\[\]]+/;
+    const isVariable1 = /^\s*\b(?![(])[\w\[\],\s]*\s?=\s?[\w\[\]]+/;
+    const isVariable2 = /^\s*\b(?![(])[\w\[\],\s]*\s?<-\s?[\w\[\]]+/;
 
     if (!fun(content) && (isVariable1.test(content) || isVariable2.test(content))) {
         return isVariable1;
@@ -291,6 +291,7 @@ areYou.processFunction = function (json,index) {
 };
 areYou.processLoop = function (json,index) {
     let end = searchEnd(json, json[index].codeBlock, json[index].Line);
+    console.log('LOOPEND ' + end);
     let start = json[index].Line;
     addLoopContent(json,index,start, end);
     if (json[index].type != 'repeatLoop') {
@@ -305,43 +306,41 @@ areYou.processLoop = function (json,index) {
         end:end
     }
 };
-//TODO: Also process single line types
 addLoopContent = function (json,index,startOfLoopLine, endOfLoopIndex) {
     let numOfItems = 0;
     json[index].content = [];
-    //let lengthOfLoop = endOfLoopIndex - startOfLoopLine
-    //console.log('STARTOFLOOP ' + startOfLoopLine);
-    console.log('ENDOFLOOPLInE ' + endOfLoopIndex);
+
     let endAt = endOfLoopIndex;
     endOfJsonLoop = json.findIndex(item => {
         return item.Line == endAt
     })
 
     console.log('ENDOfJsonLoop ' + endAt);
-    let singleLineTypes = ['varCall','library', 'exFile', 'sequence', 'inlineFunction'];
+    let singleLineTypes = ['variable call','library', 'exFile', 'sequence', 'inlineFunction'];
     let endIndex = 0;
-    for (let i = index + 1; i <= endOfJsonLoop; i++) {
-        console.log(i);
+    for (let i = index + 1; i < endOfJsonLoop; i++) {
+        
         let line = i;
         let value = json[i].value;
+       
         let type = areYou.findType(value);
-        if (singleLineTypes.includes(value)){
+        
+        if (singleLineTypes.includes(type)){
             json[index].content[numOfItems] = { line, value, type };
             numOfItems++;
+            endIndex = numOfItems;
         } else {
-            value = findValue(json,index+1);
-            console.log('VALUE ' + JSON.stringify(value))
+            value = findValue(json,i);
             json[index].content[numOfItems] = { line, value, type };
-            numOfItems = numOfItems + value.end;
-            endIndex = value.end 
-            i = endIndex +1;
+            numOfItems++;
+            endIndex = value.end
+           
         } 
-        
-        //console.log('AddLOOPCONTENT ' + JSON.stringify(json));
+        i = endIndex;
     }
     return json;
 };
-//TODO: Change also other parts
+//TODO: Change also other parts, but it works for INSYDE
 findValue = function(json,index){
     if(json[index].type == 'function'){
         console.log('function');
@@ -370,10 +369,13 @@ findValue = function(json,index){
     else if(json[index].type == 'variable'){
         let variable = areYou.processVariables(json,index,false);
         if (variable.multi == false){
-            return variable.json.content.value
+            return{
+                 json:variable.json.content,
+                 end:index
+            }
         } else {
             return{
-                json:variable.json.content.value,
+                json:variable.json.content,
                 end:variable.end
             }
         }

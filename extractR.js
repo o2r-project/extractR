@@ -79,9 +79,9 @@ extractR.implementExtractR = function (binding,response) {
     //console.log('TADAAA ' + JSON.stringify(processedJson));
 };
 
-extractR.implementExtractR('./test/example_if.Rmd');
+//extractR.implementExtractR('./test/example_if.Rmd');
 //extractR.implementExtractR('./examples/Aquestiondrivenprocess/workspace/main.Rmd');
-//extractR.implementExtractR('./tmp/INSYDE a synthetic, probabilistic flood damage model based on/workspace/main.Rmd')
+extractR.implementExtractR('./tmp/INSYDE a synthetic, probabilistic flood damage model based on/workspace/main.Rmd')
 
 
 module.exports = extractR;

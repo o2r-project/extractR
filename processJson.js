@@ -4,7 +4,7 @@ const fn = require('./functions');
 
 let pJ = {};
 
-//TODO change proceesedJson var in for loop
+//TODO: Filter out variables for getting lines to process in binding --> Start tomorrow
 pJ.addFileContentToJson = function (jsonObj) {
     let processedJson = [];
     let numberOfLoopRuns = 0;
@@ -84,11 +84,11 @@ pJ.addFileContentToJson = function (jsonObj) {
         numberOfLoopRuns++;
     //pJ.ProcessNestedCont(contJson);
     }
-    console.log('ProcessedJson ' + (JSON.stringify(processedJson)))
+    console.log('ProcessedJson ' + (JSON.stringify(processedJson,null,2)))
     return processedJson;
 };
 
-//TODO: Add lines to find all plot functions in script
+//TODO: Add lines to find all plot functions in script --> not needed for now
 pJ.findPlotLines = function (jsonObj,plotFunctions) {
     let plotFunctionsToFind = fn.readFile(plotFunctions);
     let lines = plotFunctionsToFind.split(/\r?\n/);
