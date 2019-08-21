@@ -262,7 +262,8 @@ areYou.processFunction = function (json,index) {
         let end = searchEnd(json, json[index].codeBlock, json[index].Line);
         let start = index;
         let vars = areYou.getContentInBrackets(json[index].value);
-        json[index].content = { 'vars': vars };
+        let name = areYou.getName(json[index].value);
+        json[index].content = { 'vars': vars,'name': name };
         startEnd.push(start, end);
     } else {
         let preprocessMultiLineArgFun = processMultiLineVarContent(json, index);
@@ -273,7 +274,8 @@ areYou.processFunction = function (json,index) {
         let end = searchEnd(json, json[index].codeBlock, json[endOfFunArgs].Line);
         //console.log('END ' + end)
         let vars = areYou.getContentInBrackets(preprocessMultiLineArgFun.value);
-        json[index].content = { 'vars': vars };
+        let name = areYou.getName(preprocessMultiLineArgFun.value);
+        json[index].content = { 'vars': vars,'name': name };
         let max = 2;
         if (startEnd.length < max) {
             startEnd.push(start, end);
@@ -471,7 +473,7 @@ deleteDups = function (json,index,end) {
             }
         }
     //Then delete dublicate items by creating new json
-    console.log('IN delete dups ' + JSON.stringify(json));
+    //console.log('IN delete dups ' + JSON.stringify(json));
     return json;
 };
 
@@ -607,6 +609,19 @@ areYou.getFunction = function (content) {
     //console.log(fun);
     return fun;
 };
+
+areYou.getName = function(content){
+    if(content.indexOf('=') != -1 && content.indexOf('(') > content.indexOf('=')){
+        console.log('CONT8 ' + content);
+        console.log('CONT9 ' + content.substring(0,content.indexOf('=')))
+        let name = content.substring(0,content.indexOf('='));
+        return name
+    } else {
+        console.log('CONT7 ' + content);
+        let name = content.substring(0,content.indexOf('<-'));
+        return name
+    }
+}
 
 areYou.getContentInBrackets = function (content) {
     let start = content.indexOf('(');

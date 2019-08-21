@@ -63,6 +63,7 @@ extractR.implementExtractR = function (binding,response) {
     //console.log(json);
     let jsonObj = {'Lines': json};
     let processedJson = processJson.addFileContentToJson(jsonObj);
+    let varsInLines = processJson.getVarsAndValuesOfLines(processedJson);
     //console.log('PROCESSED ' + JSON.stringify(processedJson));
 
     
