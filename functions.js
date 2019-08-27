@@ -127,7 +127,6 @@ fn.filterComments = function (code) {
 };
 
 fn.deleteComments = function (code) {
-    //console.log(JSON.stringify(code));
     let commentExpression = /#(.*)/g;
     for(let i = 0; i<code.length;i++) {
             if (commentExpression.test(code[i].value)) {

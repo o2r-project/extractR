@@ -58,13 +58,13 @@ extractR.implementExtractR = function (binding,response) {
     let codeparts = fn.splitCodeIntoLines(code);
    // console.log(codeparts);
     let type = rules.getTypeOfLine(codeparts);
-    //let comments = fn.deleteComments(type);
-    let json = fn.array2Json(type);
+    let comments = fn.deleteComments(type);
+    let json = fn.array2Json(comments);
     //console.log(json);
     let jsonObj = {'Lines': json};
     let processedJson = processJson.addFileContentToJson(jsonObj);
     let varsInLines = processJson.getVarsAndValuesOfLines(processedJson);
-    //console.log('PROCESSED ' + JSON.stringify(processedJson));
+    //console.log('PROCESSED ' + JSON.stringify(processedJson,null,2));
 
     
     //Mock response TODO --> REPLACE CODED LINES

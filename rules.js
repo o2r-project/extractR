@@ -372,12 +372,12 @@ findValue = function(json,index){
         let variable = areYou.processVariables(json,index,false);
         if (variable.multi == false){
             return{
-                 json:variable.json.content,
+                 json:variable.json,
                  end:index
             }
         } else {
             return{
-                json:variable.json.content,
+                json:variable.json,
                 end:variable.end
             }
         }
@@ -487,7 +487,7 @@ areYou.processInlineFunction = function (json,index) {
     //console.log(fun);
     let funContProcessed = processBracketContentInFun(funCont);
     json[index].call = fun;
-    json[index].content = funContProcessed;
+    json[index].content = [funContProcessed];
     typeArray = [];
     for (let j = 0; j < funContProcessed.args.value.length; j++) {
         let type = areYou.findType(funContProcessed.args[j]);
@@ -497,6 +497,7 @@ areYou.processInlineFunction = function (json,index) {
     return json[index]
 };
 
+//TODO: Add brackets to all content
 areYou.processVariables = function (json, index,multi) {
     let linesOfMultiVar = [];
     let end;
@@ -504,7 +505,7 @@ areYou.processVariables = function (json, index,multi) {
     if (varCont.indexOf('(') != -1 && varCont.indexOf(')') != -1 || varCont.indexOf('(') == -1 && varCont.indexOf(')') == -1) {
         let varContProcessed = processVarContent(varCont);
         varContProcessed.type = areYou.findType(varContProcessed.value);
-        json[index].content = varContProcessed;
+        json[index].content = [varContProcessed];
         return {
             json:json[index],
             multi:false
@@ -514,7 +515,7 @@ areYou.processVariables = function (json, index,multi) {
         let preprocessVarCond = processMultiLineVarContent(json, index);
         let varContProcessed = processVarContent(preprocessVarCond.value);
         varContProcessed.type = areYou.findType(varContProcessed.value);
-        json[index].content = varContProcessed;
+        json[index].content = [varContProcessed];
         let start = index + 1;
         end = preprocessVarCond.end;
         linesOfMultiVar.push(start, end);
@@ -563,7 +564,9 @@ areYou.processVarCall = function (json,index) {
          let varCallCont = json[index].content.value;
          json[index].content.content = {'value':varCallCont};
      }*/
-    return json[index];
+    return {
+        json:json[index]
+    };
 };
 
 //TODO lib
@@ -572,14 +575,18 @@ areYou.processLib = function (json,index) {
     let libCont = json[index].value;
     let calledLib = areYou.getContentInBrackets(libCont);
     json[index].content = calledLib;
-    return json[index];
+    return {
+        json:json[index]
+    };
 };
 
 areYou.processExFile = function (json,index) {
     let file = json[index].value;
     let LinkToFile = areYou.getContentInBrackets(file)[0];
     json[index].content = LinkToFile;
-    return json[index];
+    return {
+        json:json[index]
+    }
 };
 
 areYou.processSequence = function (json,index) {
@@ -589,7 +596,9 @@ areYou.processSequence = function (json,index) {
     //     let seq = json[index].content.value;
     //     json[index].content.content = seq;
     // }
-    return json[index];
+    return {
+        json:json[index]
+    }
 };
 
 //Helper functions

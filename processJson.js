@@ -4,7 +4,7 @@ const fn = require('./functions');
 
 let pJ = {};
 
-//TODO: Filter out variables for getting lines to process in binding --> Start tomorrow
+
 pJ.addFileContentToJson = function (jsonObj) {
     let processedJson = [];
     let numberOfLoopRuns = 0;
@@ -17,7 +17,7 @@ pJ.addFileContentToJson = function (jsonObj) {
             console.log('function');
             let fun = rules.processFunction(jsonObj.Lines,i);
             console.log(fun);
-            processedJson.push(fun.json);
+            processedJson.push(fun);
             //console.log('ProcessedJson ' + JSON.stringify(processedJson))
             console.log('FN ' + fun.end);
             i = fun.end;
@@ -25,7 +25,7 @@ pJ.addFileContentToJson = function (jsonObj) {
         else if(jsonObj.Lines[i].type == 'conditional'){    
             console.log('cond');
             let cond = rules.processCond(jsonObj.Lines,i);
-            processedJson.push(cond.json);
+            processedJson.push(cond);
             //console.log('ProcessedJsonInCond ' + JSON.stringify(processedJson))
             i = cond.end 
             //console.log('LOOPSPRO ' + JSON.stringify(processedJson));
@@ -33,7 +33,7 @@ pJ.addFileContentToJson = function (jsonObj) {
         else if(jsonObj.Lines[i].type == 'forLoop' || jsonObj.Lines[i].type == 'whileLoop' || jsonObj.Lines[i].type == 'repeatLoop'){    
             console.log('loop');
             let loop = rules.processLoop(jsonObj.Lines,i);
-            processedJson.push(loop.json);
+            processedJson.push(loop);
             //console.log('ProcessedJson ' + JSON.stringify(processedJson))
             i = loop.end 
         }
@@ -48,10 +48,10 @@ pJ.addFileContentToJson = function (jsonObj) {
             console.log('var');
             let variable = rules.processVariables(jsonObj.Lines,i,false);
             if (variable.multi == false){
-                processedJson.push(variable.json);
+                processedJson.push(variable);
                 //console.log('ProcessedJson ' + JSON.stringify(processedJson))
             } else {
-                processedJson.push(variable.json);
+                processedJson.push(variable);
                 //console.log('ProcessedJson ' + JSON.stringify(processedJson))
                 i = variable.end 
             }
@@ -89,9 +89,9 @@ pJ.addFileContentToJson = function (jsonObj) {
 };
 
 pJ.getVarsAndValuesOfLines = function(processedJson){
+    console.log(JSON.stringify(processedJson,null,2));
     let varsAndValues = [];
     for (let i = 0; i < processedJson.length;i++){
-        console.log('Hello ' + JSON.stringify(processedJson[0].Line))
         if(processedJson[i].type == 'function'){
             console.log('function');
             let start = processedJson[i].Line
@@ -102,39 +102,54 @@ pJ.getVarsAndValuesOfLines = function(processedJson){
             varsAndValues.push({start,end,vars,type,name})
         
         }
-        else if(processedJson[i].type == 'conditional'){    
-            console.log('cond');
+        else if(processedJson[i].json.type == 'conditional'){   
+            let start = processedJson[i].json.Line
+            let end = processedJson[i].end;
+            let vars = pJ.getVarsOfCond(processedJson[i].json);
+            let type = processedJson[i].json.type
+            let name = rules.getContentInBrackets(processedJson[i].json.value)[0]
+            varsAndValues.push({start,end,vars,type,name})
             
         }
-        else if(processedJson[i].type == 'forLoop' || processedJson[i].type == 'whileLoop' || processedJson[i].type == 'repeatLoop'){    
+        else if(processedJson[i].json.type == 'forLoop' || processedJson[i].json.type == 'whileLoop' || processedJson[i].json.type == 'repeatLoop'){    
             console.log('loop');
             
         }
-        else if(processedJson[i].type == 'inlineFunction'){
+        else if(processedJson[i].json.type == 'inlineFunction'){
             console.log('ILFunction');
            
         }
-        // Q (Line 6 not working at the moment)
-        else if(processedJson[i].type == 'variable'){
+        else if(processedJson[i].json.type == 'variable'){
             console.log('var');
-            let start = processedJson[i].Line
-            let end = processedJson[i].Line
-            let vars = pJ.getVarsOfVariables(processedJson[i]);
-            let type = processedJson[i].type
-            let name = processedJson[i].content.variable
-            varsAndValues.push({start,end,vars,type,name})
+            let end;
+            let start = processedJson[i].json.Line
+            if(processedJson[i].multi == false){
+            end = processedJson[i].json.Line
+            } else {
+                end = processedJson[i].end;
+            } 
+            //let vars = pJ.getVarsOfVariables(processedJson[i].json);
+            let type = processedJson[i].json.type
+            let name = processedJson[i].json.content[0].variable
+            varsAndValues.push({start,end,/** vars, */type,name})
            
         }
-        else if(processedJson[i].type == 'variable call'){    
+        else if(processedJson[i].json.type == 'variable call'){    
             console.log('varCall');
+            let start = processedJson[i].json.Line
+            let end = processedJson[i].json.Line
+            let vars = [processedJson[i].json.content.value]
+            let type = processedJson[i].json.type
+            let name = processedJson[i].json.content.value
+            varsAndValues.push({start,end,vars,type,name})
         }
-        else if(processedJson[i].type == 'library'){    
+        else if(processedJson[i].json.type == 'library'){    
             console.log('lib');
-            let start = processedJson[i].Line
-            let end = processedJson[i].Line
+            let start = processedJson[i].json.Line
+            let end = processedJson[i].json.Line
             let vars = []
-            let type = processedJson[i].type
-            let name = processedJson[i].content[0]
+            let type = processedJson[i].json.type
+            let name = processedJson[i].json.content[0]
             varsAndValues.push({start,end,vars,type,name})
             
             
@@ -152,45 +167,85 @@ pJ.getVarsAndValuesOfLines = function(processedJson){
     return varsAndValues;
 }
 
-pJ.getVarsOfVariables = function(LineWithTypeVariable){
-    let vars = [];
-    vars.push(LineWithTypeVariable.content.variable)
-    if(LineWithTypeVariable.content.type == 'inlineFunction'){
-        if(LineWithTypeVariable.content.value.indexOf('#') == -1){
-        let contentInBrackets = rules.getContentInBrackets(LineWithTypeVariable.content.value);
+pJ.getVarsOfInlineFunctions = function(LineWithTypeInlineFunction){
+    let inlineFunVars = "";
+    if(LineWithTypeInlineFunction.indexOf('#') == -1){
+        let contentInBrackets = rules.getContentInBrackets(LineWithTypeInlineFunction);
         for(let i = 0; i< contentInBrackets.length; i++){
             if(isNaN(contentInBrackets[i]) == true){
-                vars.push(contentInBrackets[i]);
+                inlineFunVars =  contentInBrackets[i];
             }   
         }
      } else {
-            let contentString = LineWithTypeVariable.content.value;
-            let values = contentString.substring(0,contentString.indexOf('#'))
+            let contentString = LineWithTypeInlineFunction;
+            console.log('contentString');
+            console.log(contentString);
+            let values = contentString.substring(0,indexOf('#'))
             if(values.indexOf('(') != -1 && values.indexOf(')') != -1){
                 let varsInBrackets = rules.getContentInBrackets(values);
                 for(let i = 0; i< varsInBrackets.length; i++){
                     if(isNaN(varsInBrackets[i]) == true){
-                        vars.push(varsInBrackets[i]);
+                        inlineFunVars = varsInBrackets[i];
                     }
                 }
             }
         }
-    } 
-    else {
-        let contentString = LineWithTypeVariable.content.value;
-        if(contentString.indexOf('#') == -1){
-            if(isNaN(contentString) == true){
-                vars.push(contentString);
-            }
-        } else {
-            let value = contentString.substring(0,contentString.indexOf('#'))
-            if(isNaN(value) == true){
-                vars.push(value);
-            }
-        }
+        return inlineFunVars;
+}
 
+pJ.getVarsOfVariables = function(LineWithTypeVariable){
+    let vars = [];
+    for (let i = 0; i < LineWithTypeVariable.content.length; i++) {
+        let variable = LineWithTypeVariable.content[i].variable;
+        console.log('LineWithTypeVariable');
+        console.log(LineWithTypeVariable);
+        if(variable.indexOf('#') != -1){
+            let varWithoutComment = variable.substring(0,variable.indexOf('#'))
+            vars.push(varWithoutComment);
+        } else{
+            vars.push(variable);
+        }
+        if(LineWithTypeVariable.content[i].type == 'inlineFunction'){
+            console.log('LineWithTypeVariable.content[i]');
+            console.log(LineWithTypeVariable.content[i]);
+        let inlineFun = pJ.getVarsOfInlineFunctions(LineWithTypeVariable.content[i].value);
+        console.log('inlineFun')
+        console.log(inlineFun);
+        vars.push(inlineFun);
+        } 
+        else {
+            let contentString = LineWithTypeVariable.content[i].value;
+            if(contentString.indexOf('#') == -1){
+                if(isNaN(contentString) == true){
+                    vars.push(contentString);
+                }
+            } else {
+                let value = contentString.substring(0,contentString.indexOf('#'))
+                if(isNaN(value) == true){
+                    vars.push(value);
+                }
+            }
+
+        }
     }
     return vars;
+}
+//TODO: Finish cond processing
+pJ.getVarsOfCond = function (LineWithTypeCond) {
+    let vars = [];
+    let condVar = rules.getContentInBrackets(LineWithTypeCond.value);
+    for(let i = 0; i<condVar.length;i++){
+        vars.push(condVar[i]);
+    }
+    for (let i = 0; i < LineWithTypeCond.content.length; i++) {
+        if (LineWithTypeCond.content[i].type == 'variable') {
+            let varValue = pJ.getVarsOfVariables(LineWithTypeCond.content[i].value.json);
+            console.log('varValue');
+            console.log(varValue);
+            //vars.push(varValue);
+
+        }
+    }
 }
 
 //TODO: Add lines to find all plot functions in script --> not needed for now
