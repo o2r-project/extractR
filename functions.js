@@ -64,6 +64,10 @@ fn.extractCodeLines = function (file) {
             }
     }
     }
+    console.log('extractCodeLines');
+    console.log(start);
+    console.log('');
+    console.log(end);
     return {
         start: start,
         end: end
@@ -88,24 +92,25 @@ fn.extractCode = function(file,start,end){
  * @param code
  * @returns {Array} including the codeline, the block and the line number of that specific block
  */
-fn.splitCodeIntoLines = function (code) {
+fn.splitCodeIntoLines = function (code,startLine) {
+    let codeStart = startLine + 1; 
     let codeLines = [];
     let commentOnly = /^\s*#.*/;
     let counter = 0;
 
     for (let i = 0;i<code.length;i++) {
-        for (let j = 0;j<code[i].length; j++) {
-            if (code[i][j].length > 0){
-                let noComment = commentOnly.test(code[i][j])
+        code[i].forEach((element,index) => {
+            if (element.length > 0){
+                let noComment = commentOnly.test(element)
                 if(noComment == false){ 
-                    let value = code[i][j]
-                    codeLines.push({"value":value,"codeBlock": i, "Line": counter});
-                    counter++;
+                    let value = element
+                    codeLines.push({"value":value,"codeBlock": i + 1, "Line": counter, "index": index + codeStart});
+                    counter++
                 }
             }
-        }
+        });
     }
-    //console.log('CL ' + JSON.stringify(codeLines))
+    console.log('CL ' + JSON.stringify(codeLines))
     return codeLines;
 };
 

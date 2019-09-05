@@ -186,7 +186,6 @@ processBracketContentLoops = function (brContent, type) {
 processBracketContentInFun = function (funContent) {
     let parts = [];
     for (let i = 0; i < funContent.length; i++) {
-        //console.log(funContent.length);
         let con = funContent[i].split(',');
         parts.push(con[0]);
         //console.log(parts);
@@ -201,8 +200,9 @@ processBracketContentInFun = function (funContent) {
 
 //Variables
 processVarContent = function (varContent) {
-    //console.log('CONT ' + varContent);
-    if (varContent.indexOf('=') != -1) {
+    console.log('CONT1 ' + varContent);
+    
+    if (varContent.indexOf('=') != -1 && varContent.indexOf('<-') == -1) {
         let variable = varContent.substring(0, varContent.indexOf('='));
         let value = varContent.substring(varContent.indexOf('=') + 1);
         return {
@@ -264,7 +264,7 @@ areYou.processFunction = function (json,index) {
         let vars = areYou.getContentInBrackets(json[index].value);
         let name = areYou.getName(json[index].value);
         json[index].content = { 'vars': vars,'name': name };
-        startEnd.push(start, end);
+        startEnd.push(start, end.line,end.endIndex);
     } else {
         let preprocessMultiLineArgFun = processMultiLineVarContent(json, index);
         //console.log('preprocessMultiLineArgFun ' + JSON.stringify(preprocessMultiLineArgFun))
@@ -272,13 +272,13 @@ areYou.processFunction = function (json,index) {
         //console.log('Start ' + start)
         let endOfFunArgs = preprocessMultiLineArgFun.end
         let end = searchEnd(json, json[index].codeBlock, json[endOfFunArgs].Line);
-        //console.log('END ' + end)
+        console.log('ENDF ' + JSON.stringify(end));
         let vars = areYou.getContentInBrackets(preprocessMultiLineArgFun.value);
         let name = areYou.getName(preprocessMultiLineArgFun.value);
         json[index].content = { 'vars': vars,'name': name };
-        let max = 2;
+        let max = 3;
         if (startEnd.length < max) {
-            startEnd.push(start, end);
+            startEnd.push(start, end.line,end.endIndex);
             console.log('startEnd ' + startEnd);
         }
     }
@@ -288,24 +288,28 @@ areYou.processFunction = function (json,index) {
     }
     return {
         json:json[index],
-        end: startEnd[1]
+        end: startEnd[1],
+        index: json[index].index,
+        endIndex: startEnd[2]
     }
 };
 areYou.processLoop = function (json,index) {
     let end = searchEnd(json, json[index].codeBlock, json[index].Line);
     console.log('LOOPEND ' + end);
     let start = json[index].Line;
-    addLoopContent(json,index,start, end);
+    addLoopContent(json,index,start, end.line);
     if (json[index].type != 'repeatLoop') {
         let brCont = areYou.getContentInBrackets(json[index].value, json[index].type);
         let brContProccessed = processBracketContentLoops(brCont, json[index].type);
         brContProccessed.type = areYou.findType(brContProccessed.sequence);
         json[index].loopOver = brContProccessed;
     }
-    let processedLoop = deleteDups(json,index,end);
+    let processedLoop = deleteDups(json,index,end.line);
     return {
         json:processedLoop[index],
-        end:end
+        end:end.line,
+        index: json[index].index,
+        endIndex: end.endIndex
     }
 };
 addLoopContent = function (json,index,startOfLoopLine, endOfLoopIndex) {
@@ -349,7 +353,9 @@ findValue = function(json,index){
         let fun = areYou.processFunction(json,index);
         return {
             json:fun.json,
-            end:fun.end
+            end:fun.end,
+            index: json[index].index,
+            endIndex:fun.endIndex
         }
     }
     else if(json[index].type == 'conditional'){    
@@ -357,7 +363,9 @@ findValue = function(json,index){
         let cond = areYou.processCond(json,index);
        return{
            json:cond.json,
-           end:cond.end
+           end:cond.end,
+           index: json[index].index,
+           endIndex: cond.endIndex
        }
     }
     else if(json[index].type == 'forLoop' || json[index].type == 'whileLoop' || json[index].type == 'repeatLoop'){    
@@ -365,7 +373,10 @@ findValue = function(json,index){
         let loop = areYou.processLoop(json,index);
         return{
             json:loop.json,
-            end:loop.end
+            end:loop.end,
+            index: json[index].index,
+            endIndex: loop.endIndex
+
         }
     }
     else if(json[index].type == 'variable'){
@@ -373,12 +384,14 @@ findValue = function(json,index){
         if (variable.multi == false){
             return{
                  json:variable.json,
-                 end:index
+                 end:index,
+                 index: json[index].index
             }
         } else {
             return{
                 json:variable.json,
-                end:variable.end
+                end:variable.end,
+                index: json[index].index
             }
         }
     }
@@ -410,7 +423,10 @@ searchEnd = function (json, blockIndex, lineIndex) {
 
         }
         if ((openCount == 0) && i != lineIndex) {
-            return json[i].Line;
+            return {
+                line:json[i].Line,
+                endIndex: json[i].index
+            }
         }
     }
 };
@@ -436,6 +452,7 @@ findNested = function (json, outerType, innerType) {
     let opening = /{/g;
     let closing = /}/g;
     let location = [];
+    let endIndex = [];
 
     for (let i = 0; i < json.length; i++) {
         if (json[i].type == outerType && json[i].content == undefined) {
@@ -447,10 +464,13 @@ findNested = function (json, outerType, innerType) {
                         if (opening.test(value.value)) {
                             openingBracketsFound += value.value.match(opening).length;
                             location.push(value.line);
+                            endIndex.push(value.index);
                         } else if (closing.test(value.value)) {
                             //console.log('CLOOOOOOOOOOOOOOOSING FOUND ' + JSON.stringify(value))
                             closingBracketsFound += value.value.match(closing).length;
                             location.push(value.line);
+                            endIndex.push(value.index);
+
                         }
                     });
                 }
@@ -460,7 +480,8 @@ findNested = function (json, outerType, innerType) {
     return {
         closingBracketsFound: closingBracketsFound,
         openingBracketsFound: openingBracketsFound,
-        location: location
+        location: location,
+        endIndex:endIndex
     }
 }
 
@@ -494,7 +515,10 @@ areYou.processInlineFunction = function (json,index) {
         typeArray.push(type);
         funContProcessed.type = typeArray;
     }
-    return json[index]
+    return {
+        json:json[index],
+        index: json[index].index
+    }
 };
 
 //TODO: Add brackets to all content
@@ -508,7 +532,8 @@ areYou.processVariables = function (json, index,multi) {
         json[index].content = [varContProcessed];
         return {
             json:json[index],
-            multi:false
+            multi:false,
+            index: json[index].index
         }
     } else {
         //console.log('I am multi');
@@ -547,12 +572,13 @@ areYou.processCond = function (json,index) {
     //console.log('Start ' + startLine)
     //console.log('End  ' + endLine)
     //console.log('INDEX ' + index);
-    addLoopContent(json,index,startLine, endLine);
+    addLoopContent(json,index,startLine, endLine.line);
 
-    let processedCond = deleteDups(json,index,endLine);
+    let processedCond = deleteDups(json,index,endLine.line);
     return {
         json:processedCond[index],
-        end:endLine
+        end:endLine.line,
+        endIndex: endLine.endIndex
     }
 };
 
@@ -565,7 +591,8 @@ areYou.processVarCall = function (json,index) {
          json[index].content.content = {'value':varCallCont};
      }*/
     return {
-        json:json[index]
+        json:json[index],
+        index: json[index].index
     };
 };
 
@@ -576,7 +603,8 @@ areYou.processLib = function (json,index) {
     let calledLib = areYou.getContentInBrackets(libCont);
     json[index].content = calledLib;
     return {
-        json:json[index]
+        json:json[index],
+        index: json[index].index
     };
 };
 
@@ -585,7 +613,8 @@ areYou.processExFile = function (json,index) {
     let LinkToFile = areYou.getContentInBrackets(file)[0];
     json[index].content = LinkToFile;
     return {
-        json:json[index]
+        json:json[index],
+        index: json[index].index
     }
 };
 
@@ -597,7 +626,8 @@ areYou.processSequence = function (json,index) {
     //     json[index].content.content = seq;
     // }
     return {
-        json:json[index]
+        json:json[index],
+        index: json[index].index
     }
 };
 

@@ -31,7 +31,6 @@ extractR.start = (conf) => {
     });
 };
 
-//Remember plot functions
 extractR.implementExtractR = function (binding,response) {
     console.log('Start to create binding');
     console.log(binding);
@@ -40,9 +39,9 @@ extractR.implementExtractR = function (binding,response) {
     let file = fn.readFile('test',binding);
 
     //Comment in if used with Service
-    //let file = fn.readRmarkdown(binding.id, binding.sourcecode.file);
+    //let file = fn.readRmarkdown(binding.id, binding.file);
 
-    //let file = fn.readFile(binding.id, binding.sourcecode.file);
+    //let file = fn.readFile(binding.id, binding.file);
     
     let lines = file.split('\n');
     //let lineInFile = fn.returnRequestedLine(file,line);
@@ -55,7 +54,7 @@ extractR.implementExtractR = function (binding,response) {
     //console.log(JSON.stringify(code[code.length-1] ,null, '\t'));
     //console.log('Codeparts: ');
     //console.log(codeLines);
-    let codeparts = fn.splitCodeIntoLines(code);
+    let codeparts = fn.splitCodeIntoLines(code,codeLines.start[0]);
    // console.log(codeparts);
     let type = rules.getTypeOfLine(codeparts);
     let comments = fn.deleteComments(type);
@@ -63,21 +62,35 @@ extractR.implementExtractR = function (binding,response) {
     //console.log(json);
     let jsonObj = {'Lines': json};
     let processedJson = processJson.addFileContentToJson(jsonObj);
-    let varsInLines = processJson.getVarsAndValuesOfLines(processedJson);
     //console.log('PROCESSED ' + JSON.stringify(processedJson,null,2));
+    let varsInLines = processJson.getVarsAndValuesOfLines(processedJson);
+    console.log('varsInLines');
+    console.log(varsInLines);
+    //Insert binding.plot
+    let valuesToSearchFor = processJson.valuesToSearchFor('plotFigure1(he,modelOutput)');
+    let codeLinesForValues = processJson.getAllCodeLines(varsInLines,valuesToSearchFor,[]);
+    console.log('FCL');
+    console.log(codeLinesForValues);
+    let finalCodeLines = processJson.getCodeLines(codeLinesForValues);
+    console.log('FC')
+    console.log(finalCodeLines);
+    //console.log('PROCESSED ' + JSON.stringify(processedJson,null,2));
+    //console.log('LINE7');
+    //console.log(lines);
+    //console.log(lines.length);
 
     
     //Mock response TODO --> REPLACE CODED LINES
     // Codelines = {"start":30,"end":424} 
     /** 
-    binding.sourcecode.codelines = processJson.getCodeLines(processedJson);
-    console.log(binding.sourcecode.codelines)
+     * TODO: How to get var to search for?
+    binding.codelines = processJson.getCodeLines(codeLinesForValues);
+    console.log(binding.codelines)
     response.send({
         callback: 'ok',
         data: binding});
     */    
-    //let plotFun = processJson.findPlotLines(jsonObj, plotFunctions);
-    //console.log('TADAAA ' + JSON.stringify(processedJson));
+
 };
 
 //extractR.implementExtractR('./test/example_if.Rmd');
