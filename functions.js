@@ -75,17 +75,17 @@ fn.extractCodeLines = function (file) {
 };
 
 fn.extractCode = function(file,start,end){
-   let code = [];
-   for(let i = 0; i < start.length;i++){
-      let codeparts = file.slice(start[i],end[i]);
-      code.push(codeparts);
-   }
-   // Replace \r through ''
-   for(let i = 0; i<code.length;i++) {
-       code[i] = code[i].map((x) => x.replace('\r', ''));
-   }
-   return code;
-};
+    let code = [];	    let code = [];
+    for(let i = 0; i < start.length;i++){	    for(let i = 0; i < start.length;i++){
+       let codeparts = file.slice(start[i],end[i]);	       let codeparts = file.slice(start[i],end[i]);
+       code.push(codeparts);	       if(end[i] != start[i+1] + 1){
+    }	         let diff = start[i + 1] - end[i];
+    // Replace \r through ''	         for (let j = end[i]; j < start[i+1]; j++){
+    for(let i = 0; i<code.length;i++) {	             codeparts.splice(j,0,'');
+        code[i] = code[i].map((x) => x.replace('\r', ''));	
+    }	         } 
+    return code;	     }
+ };	       code.push(codeparts);
 
 /**
  *
@@ -97,9 +97,10 @@ fn.splitCodeIntoLines = function (code,startLine) {
     let codeLines = [];
     let commentOnly = /^\s*#.*/;
     let counter = 0;
+    let index = 0;
 
     for (let i = 0;i<code.length;i++) {
-        code[i].forEach((element,index) => {
+        code[i].forEach((element) => {
             if (element.length > 0){
                 let noComment = commentOnly.test(element)
                 if(noComment == false){ 
@@ -108,6 +109,7 @@ fn.splitCodeIntoLines = function (code,startLine) {
                     counter++
                 }
             }
+            index++;
         });
     }
     console.log('CL ' + JSON.stringify(codeLines))
