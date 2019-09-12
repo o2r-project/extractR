@@ -62,12 +62,12 @@ extractR.implementExtractR = function (binding,response) {
     //console.log(json);
     let jsonObj = {'Lines': json};
     let processedJson = processJson.addFileContentToJson(jsonObj);
-    //console.log('PROCESSED ' + JSON.stringify(processedJson,null,2));
+    console.log('PROCESSED ' + JSON.stringify(processedJson,null,2));
     let varsInLines = processJson.getVarsAndValuesOfLines(processedJson);
     console.log('varsInLines');
     console.log(varsInLines);
     //Insert binding.plot
-    let valuesToSearchFor = processJson.valuesToSearchFor('plotFigure1(he,modelOutput)');
+    let valuesToSearchFor = processJson.valuesToSearchFor('PlotFigure1(Tracks.df)');
     let codeLinesForValues = processJson.getAllCodeLines(varsInLines,valuesToSearchFor,[]);
     console.log('FCL');
     console.log(codeLinesForValues);
@@ -95,7 +95,8 @@ extractR.implementExtractR = function (binding,response) {
 
 //extractR.implementExtractR('./test/example_if.Rmd');
 //extractR.implementExtractR('./examples/Aquestiondrivenprocess/workspace/main.Rmd');
-extractR.implementExtractR('./tmp/INSYDE a synthetic, probabilistic flood damage model based on/workspace/main.Rmd')
+//extractR.implementExtractR('./tmp/INSYDE a synthetic, probabilistic flood damage model based on/workspace/main.Rmd')
+extractR.implementExtractR('./tmp/main.Rmd')
 
 
 module.exports = extractR;

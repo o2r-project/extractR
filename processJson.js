@@ -435,10 +435,11 @@ pJ.valuesToSearchFor = function (plotFunction) {
 
 pJ.getAllCodeLines = function (processedJson, varToSearchFor, lines) {
     let plotFunctions = ['lines', 'plot', 'axis', 'mtext', 'legend', 'par'];
-    let libAndFun = ['library', 'function']
+    let libAndFun = ['library', 'function'];
+    let data = new RegExp('\\b' + 'load' + '\\b');
     if (lines.length == 0) {
         processedJson.forEach(line => {
-            if (plotFunctions.some(fun => line.name.includes(fun)) || libAndFun.some(fun => line.type.includes(fun))) {
+            if (plotFunctions.some(fun => line.name.includes(fun)) || libAndFun.some(fun => line.type.includes(fun)) || data.test(line.vars) ) {
                 lines.push({
                     start: line.start,
                     end: line.end,

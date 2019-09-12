@@ -75,17 +75,24 @@ fn.extractCodeLines = function (file) {
 };
 
 fn.extractCode = function(file,start,end){
-    let code = [];	    let code = [];
-    for(let i = 0; i < start.length;i++){	    for(let i = 0; i < start.length;i++){
-       let codeparts = file.slice(start[i],end[i]);	       let codeparts = file.slice(start[i],end[i]);
-       code.push(codeparts);	       if(end[i] != start[i+1] + 1){
-    }	         let diff = start[i + 1] - end[i];
-    // Replace \r through ''	         for (let j = end[i]; j < start[i+1]; j++){
-    for(let i = 0; i<code.length;i++) {	             codeparts.splice(j,0,'');
-        code[i] = code[i].map((x) => x.replace('\r', ''));	
-    }	         } 
-    return code;	     }
- };	       code.push(codeparts);
+    let code = [];
+    for(let i = 0; i < start.length;i++){
+       let codeparts = file.slice(start[i],end[i]);
+       if(end[i] != start[i+1] + 1){
+         let diff = start[i + 1] - end[i];
+         for (let j = end[i]; j < start[i+1]; j++){
+             codeparts.splice(j,0,'');
+     
+         } 
+     }
+       code.push(codeparts);
+     }
+    // Replace \r through ''
+    for(let i = 0; i<code.length;i++) {
+        code[i] = code[i].map((x) => x.replace('\r', ''));
+    }
+    return code;
+}	    
 
 /**
  *
