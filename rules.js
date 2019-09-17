@@ -58,9 +58,9 @@ const fun = function (content) {
 
 const lib = function (content) {
     const isLibrary = /(?:library)/;
-    const loadData = /(?:load)/
+    const loadData = /(?:load)/;
 
-    if (isLibrary.test(content) == true || loadData.test(content) == true) {
+    if (loadData.test(content) == true || isLibrary.test(content) == true) {
         return isLibrary;
     }
 };
@@ -299,7 +299,7 @@ areYou.processFunction = function (json,index) {
 };
 areYou.processLoop = function (json,index) {
     let end = searchEnd(json, json[index].codeBlock, json[index].Line);
-    console.log('LOOPEND ' + end);
+    console.log('LOOPEND ' +JSON.stringify(end));
     let start = json[index].Line;
     addLoopContent(json,index,start, end.line);
     if (json[index].type != 'repeatLoop') {
@@ -352,6 +352,7 @@ addLoopContent = function (json,index,startOfLoopLine, endOfLoopIndex) {
 };
 //TODO: Change also other parts, but it works for INSYDE
 findValue = function(json,index){
+    console.log("FindVALue " + JSON.stringify(json[index]))
     if(json[index].type == 'function'){
         console.log('function');
         let fun = areYou.processFunction(json,index);
@@ -401,6 +402,12 @@ findValue = function(json,index){
                 endIndex: variable.endIndex
             }
         }
+    } else {
+        return{
+            json:json[index],
+            end: index,
+            index: json[index].index
+        }
     }
 };
 
@@ -413,15 +420,15 @@ searchEnd = function (json, blockIndex, lineIndex) {
     for (let i = lineIndex; i < json.length; i++) {
         if (opening.test(json[i].value)) {
             openCount += json[i].value.match(opening).length;
-            //console.log(openCount)   
+            console.log(openCount)   
         }
         if (closing.test(json[i].value)) {
             closedCount += json[i].value.match(closing).length;
             openCount -= json[i].value.match(closing).length;
-            //console.log(closedCount)
-            //console.log(openCount)        
+            console.log(closedCount)
+            console.log(openCount)        
         }
-        //console.log('i' + i);
+        console.log('i' + i);
         //console.log(json.length);
         if (openCount == closedCount & openCount != 0 & i == json.length - 1) {
             let loopsAndConds = findLoopsAndConds(json);
@@ -664,12 +671,9 @@ areYou.getFunction = function (content) {
 
 areYou.getName = function(content){
     if(content.indexOf('=') != -1 && content.indexOf('(') > content.indexOf('=')){
-        console.log('CONT8 ' + content);
-        console.log('CONT9 ' + content.substring(0,content.indexOf('=')))
         let name = content.substring(0,content.indexOf('='));
         return name
     } else {
-        console.log('CONT7 ' + content);
         let name = content.substring(0,content.indexOf('<-'));
         return name
     }

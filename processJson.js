@@ -201,14 +201,39 @@ pJ.getVarsAndValuesOfLines = function (processedJson) {
             console.log('seq');
 
         }
+        
     }
+    let singleVarsAndValues = getSingleVarsAndValues(varsAndValues);
+        console.log('VARS2 ' + JSON.stringify(singleVarsAndValues,null,2));
+        return singleVarsAndValues;
     //console.log('VARS ' + JSON.stringify(varsAndValues,null,2));
-    return varsAndValues;
+}
+
+getSingleVarsAndValues = function(varsAndValues){
+    let singleVarsAndValues = varsAndValues;
+    varsAndValues.forEach((entry,index) => {
+        console.log('ENTRY2 ' + JSON.stringify(entry))
+        entry.vars.forEach(variable => {
+            if(variable.includes('=')){
+                let vars = variable.split(/[==|]/);
+                entry.vars.filter(value => !value.includes('='))
+                vars.forEach(singleVar => {
+                    let hasNumber = /\d/; 
+                    if(hasNumber.test(singleVar) == false){
+                        singleVarsAndValues[index].vars.push(singleVar);
+                    }
+                })
+
+            }
+        })
+    })
+    return singleVarsAndValues;
 }
 
 pJ.getVarsOfInlineFunctions = function (LineWithTypeInlineFunction) {
     let inlineFunVars = "";
     if (LineWithTypeInlineFunction.indexOf('#') == -1) {
+        console.log('hello')
         let contentInBrackets = rules.getContentInBrackets(LineWithTypeInlineFunction);
         console.log('contentInBrackets')
         console.log(contentInBrackets)
@@ -433,7 +458,8 @@ pJ.valuesToSearchFor = function (plotFunction) {
 }
 
 
-pJ.getAllCodeLines = function (processedJson, varToSearchFor, lines) {
+pJ.getAllCodeLines = function (processedJson, varToSearchFor, lines,searched) {
+    let nextValues;
     console.log("LOL")
     console.log(varToSearchFor)
     let plotFunctions = ['lines', 'plot', 'axis', 'mtext', 'legend', 'par'];
@@ -441,8 +467,9 @@ pJ.getAllCodeLines = function (processedJson, varToSearchFor, lines) {
     let data = new RegExp('\\b' + 'load' + '\\b');
     if (lines.length == 0) {
         processedJson.forEach(line => {
+            //console.log(line.name);
             if (plotFunctions.some(fun => line.name.includes(fun)) || libAndFun.some(fun => line.type.includes(fun)) || data.test(line.vars) ) {
-                lines.push({
+                 lines.push({
                     start: line.start,
                     end: line.end,
                     codeBlock: line.codeBlock
@@ -458,20 +485,24 @@ pJ.getAllCodeLines = function (processedJson, varToSearchFor, lines) {
         isValid = true;
         let noWhiteSpace = entry.replace(/\s/g,"");
         try{
-            let expression = new RegExp('\\b' + noWhiteSpace + '\\b');
-            search.push(expression);
+            if(noWhiteSpace != "" && !searched.includes(noWhiteSpace)){
+                let expression = new RegExp('\\b' + noWhiteSpace + '\\b');
+                search.push(expression);
+            }
         } catch(e){
             isValid = false
+            //console.log("searched4");
+            //console.log(e.message)
         }
 
     })
-    if(isValid){
-        console.log('search')
-        console.log(search);
+    if(isValid){    
+        //console.log('search')
+        //console.log(search);
         processedJson.forEach((line) => {
-            let value2 = line.vars.some(rx => search.find(elem =>console.log(elem.test(rx))));
-            console.log(value2);
-            let value = line.vars.some(rx => search.find(elem => elem.test(rx)));
+            //let value2 = line.vars.some(rx => search.find(elem =>console.log(elem.test(rx))));
+            //let value3 = line.vars.some(rx => console.log(search.some(elem => elem.test(rx))));
+            let value = line.vars.some(rx => search.some(elem => elem.test(rx)));
             if (value) {
                 lines.push({
                     start: line.start,
@@ -480,19 +511,23 @@ pJ.getAllCodeLines = function (processedJson, varToSearchFor, lines) {
                 });
                 if (line.vars.length > 1) {
                     const index = line.vars.findIndex(value => search.some(elem => elem.test(value)));
-                    console.log(index)
                     if(index != -1){
                     let values = line.vars.splice(index,1);
-                    let nextValues = line.vars;
-                    console.log('nextvalues');
-                    console.log(line.vars);
-                    console.log(values);
-                    pJ.getAllCodeLines(processedJson, nextValues, lines);
+                    nextValues = line.vars;
+                    //console.log('nextvalues');
+                    //console.log(line.vars);
+                    //console.log(values);
+                            search.forEach(entry => {
+                                searched.push(entry);
+                            })
+                        
                     }
                 }
-
             }
         });
+        if(nextValues != undefined){
+            pJ.getAllCodeLines(processedJson, nextValues, lines, searched);
+        }
         //console.log('LIL ' + JSON.stringify(lines,null,2));
     lines = lines.reduce((noDups, entry) => {
         if (!noDups.some(object => object.start === entry.start && object.end === entry.end)) {
@@ -500,6 +535,7 @@ pJ.getAllCodeLines = function (processedJson, varToSearchFor, lines) {
         }
         return noDups;
     }, []);
+    //console.log('lines4 ' + JSON.stringify(lines));
 
     return lines.sort((a, b) => (a.start > b.start) ? 1 : -1);
     //lines.push({"start":30,"end":424})
@@ -508,7 +544,6 @@ pJ.getAllCodeLines = function (processedJson, varToSearchFor, lines) {
 
 
 pJ.getCodeLines = function (codeLines) {
-    //console.log(codeLines[0].start);
     let codeLinesOfValues = [];
 
     const min = codeLines.reduce(

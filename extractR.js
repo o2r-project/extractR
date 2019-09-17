@@ -68,7 +68,8 @@ extractR.implementExtractR = function (binding,response) {
     console.log(varsInLines);
     //Insert binding.plot
     let valuesToSearchFor = processJson.valuesToSearchFor('PlotFigure1(Tracks.df)');
-    let codeLinesForValues = processJson.getAllCodeLines(varsInLines,valuesToSearchFor,[]);
+    //let valuesToSearchFor = processJson.valuesToSearchFor('PlotFigure2b(fullData.sdf,r)');
+    let codeLinesForValues = processJson.getAllCodeLines(varsInLines,valuesToSearchFor,[],[]);
     console.log('FCL');
     console.log(codeLinesForValues);
     let finalCodeLines = processJson.getCodeLines(codeLinesForValues);
