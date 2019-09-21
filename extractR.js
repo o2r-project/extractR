@@ -64,17 +64,17 @@ extractR.implementExtractR = function (binding,response) {
     let processedJson = processJson.addFileContentToJson(jsonObj);
     console.log('PROCESSED ' + JSON.stringify(processedJson,null,2));
     let varsInLines = processJson.getVarsAndValuesOfLines(processedJson);
-    console.log('varsInLines');
-    console.log(varsInLines);
+    //console.log('varsInLines');
+    //console.log(varsInLines);
     //Insert binding.plot
-    let valuesToSearchFor = processJson.valuesToSearchFor('PlotFigure1(Tracks.df)');
+    let valuesToSearchFor = processJson.valuesToSearchFor('PlotFigure1(Tracks.df,vals)');
     //let valuesToSearchFor = processJson.valuesToSearchFor('PlotFigure2b(fullData.sdf,r)');
     let codeLinesForValues = processJson.getAllCodeLines(varsInLines,valuesToSearchFor,[],[]);
     console.log('FCL');
     console.log(codeLinesForValues);
-    let finalCodeLines = processJson.getCodeLines(codeLinesForValues);
-    console.log('FC')
-    console.log(finalCodeLines);
+    //let finalCodeLines = processJson.getCodeLines(codeLinesForValues);
+    //console.log('FC')
+    //console.log(finalCodeLines);
     //console.log('PROCESSED ' + JSON.stringify(processedJson,null,2));
     //console.log('LINE7');
     //console.log(lines);
@@ -95,7 +95,7 @@ extractR.implementExtractR = function (binding,response) {
 };
 
 //extractR.implementExtractR('./test/example_if.Rmd');
-//extractR.implementExtractR('./examples/Aquestiondrivenprocess/workspace/main.Rmd');
+//extractR.implementExtractR('./tmp/Aquestiondrivenprocess/main.Rmd');
 //extractR.implementExtractR('./tmp/INSYDE a synthetic, probabilistic flood damage model based on/workspace/main.Rmd')
 extractR.implementExtractR('./tmp/main.Rmd')
 
